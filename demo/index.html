@@ -53,14 +53,21 @@
     .sprite-fox-coding {
       width: 200px;
       height: 200px;
-      background: url('fox-coding-sprite.png') left center;
+      background: url('fox-coding-sprite.png') left center no-repeat;
       background-size: 12200px 200px;
       animation: sprite-fox-coding-play 5.08s steps(61) infinite;
+      overflow: hidden;
       filter: drop-shadow(0 6px 20px rgba(0,0,0,0.4));
     }
 
     @keyframes sprite-fox-coding-play {
-      to { background-position: right center; }
+      from { background-position: 0 center; }
+      to { background-position: -12200px center; }
+    }
+
+    @keyframes sprite-fox-sm {
+      from { background-position: 0 center; }
+      to { background-position: -7320px center; }
     }
 
     .showcase-caption {
@@ -270,7 +277,7 @@
       </div>
       <span class="ba-arrow">&rarr;</span>
       <div class="ba-item">
-        <div class="sprite-fox-coding" style="width:120px;height:120px;background-size:7320px 120px;border-radius:0.5rem;border:1px solid #334155;filter:none;"></div>
+        <div style="width:120px;height:120px;background:url('fox-coding-sprite.png') 0 center no-repeat;background-size:7320px 120px;animation:sprite-fox-sm 5.08s steps(61) infinite;border-radius:0.5rem;border:1px solid #334155;overflow:hidden;"></div>
         <span class="ba-label">Animated sprite</span>
       </div>
     </div>
@@ -331,13 +338,15 @@ chmod +x install.sh && ./install.sh</pre>
 <pre>.sprite-fox-coding {
   width: 200px;
   height: 200px;
-  background: url('fox-coding-sprite.png') left center;
+  background: url('fox-coding-sprite.png') 0 center no-repeat;
   background-size: 12200px 200px;
   animation: sprite-fox-coding-play 5.08s steps(61) infinite;
+  overflow: hidden;
 }
 
 @keyframes sprite-fox-coding-play {
-  to { background-position: right center; }
+  from { background-position: 0 center; }
+  to { background-position: -12200px center; }
 }</pre>
 
       <p>That's it. No JavaScript, no libraries, no video files. Works in any browser, any framework, any static site.</p>
