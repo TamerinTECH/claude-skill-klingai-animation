@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sprite Sheet Animation Demo — Animate Character Skill</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+    }
+
+    .demo-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      width: 100%;
+      max-width: 720px;
+    }
+
+    /* Animation stage */
+    .stage {
+      position: relative;
+      width: 240px;
+      height: 240px;
+      border-radius: 1rem;
+      background: radial-gradient(ellipse at center bottom, #1e293b 0%, #0f172a 70%);
+      border: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .stage::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #475569, transparent);
+    }
+
+    .sprite-container {
+      width: 200px;
+      height: 200px;
+      background-repeat: no-repeat;
+      background-position: left center;
+      image-rendering: auto;
+    }
+
+    .sprite-container.playing {
+      animation: sprite-play var(--duration) steps(var(--frame-count)) infinite;
+    }
+
+    @keyframes sprite-play {
+      to { background-position: right center; }
+    }
+
+    /* Built-in demo sprite (procedural CSS frames) */
+    .demo-sprite {
+      width: 200px;
+      height: 200px;
+      position: relative;
+    }
+
+    .demo-sprite .body {
+      position: absolute;
+      width: 80px;
+      height: 90px;
+      background: #f8f8f8;
+      border-radius: 50% 50% 45% 45%;
+      top: 55px;
+      left: 60px;
+      border: 3px solid #333;
+    }
+
+    .demo-sprite .face {
+      position: absolute;
+      width: 68px;
+      height: 68px;
+      background: #f8f8f8;
+      border-radius: 50%;
+      top: 10px;
+      left: 66px;
+      border: 3px solid #333;
+      z-index: 2;
+    }
+
+    .demo-sprite .eye {
+      position: absolute;
+      width: 10px;
+      height: 12px;
+      background: #333;
+      border-radius: 50%;
+      top: 24px;
+      z-index: 3;
+    }
+
+    .demo-sprite .eye.left { left: 82px; }
+    .demo-sprite .eye.right { left: 108px; }
+
+    .demo-sprite .eye.blink {
+      animation: blink 3s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 90%, 100% { transform: scaleY(1); }
+      95% { transform: scaleY(0.1); }
+    }
+
+    .demo-sprite .body.breathe {
+      animation: breathe 3s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: scaleY(1) translateY(0); }
+      50% { transform: scaleY(1.03) translateY(-2px); }
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      width: 100%;
+      background: #1e293b;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      border: 1px solid #334155;
+    }
+
+    .controls h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .control-row label {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      min-width: 80px;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      accent-color: #818cf8;
+    }
+
+    .control-value {
+      font-size: 0.85rem;
+      color: #e2e8f0;
+      min-width: 50px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 0.5rem 1.25rem;
+      border-radius: 0.5rem;
+      border: 1px solid #475569;
+      background: #334155;
+      color: #e2e8f0;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    button:hover { background: #475569; }
+
+    button.primary {
+      background: #4f46e5;
+      border-color: #6366f1;
+    }
+
+    button.primary:hover { background: #6366f1; }
+
+    .drop-zone {
+      border: 2px dashed #475569;
+      border-radius: 0.75rem;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: #818cf8;
+      background: rgba(129, 140, 248, 0.05);
+      color: #c7d2fe;
+    }
+
+    .drop-zone input { display: none; }
+
+    /* Code preview */
+    .code-section {
+      width: 100%;
+      background: #1e293b;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      border: 1px solid #334155;
+    }
+
+    .code-section h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 0.75rem;
+    }
+
+    pre {
+      background: #0f172a;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      overflow-x: auto;
+      font-size: 0.8rem;
+      line-height: 1.5;
+      color: #a5f3fc;
+      border: 1px solid #1e293b;
+    }
+
+    .info-banner {
+      width: 100%;
+      max-width: 720px;
+      background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(56, 189, 248, 0.1));
+      border: 1px solid #334155;
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+    }
+
+    .info-banner strong { color: #e2e8f0; }
+
+    a { color: #818cf8; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    footer {
+      margin-top: 3rem;
+      color: #475569;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Sprite Sheet Animation Demo</h1>
+  <p class="subtitle">Animate Character — Claude Code Skill</p>
+
+  <div class="info-banner">
+    <strong>How it works:</strong> This demo shows how a single PNG sprite sheet can render smooth character animation using only CSS <code>steps()</code>.
+    Drop in a sprite sheet generated by the <a href="https://github.com/TamerinTECH/claude-skill-klingai-animation">animate-character skill</a>, or use the built-in example below.
+  </div>
+
+  <div class="demo-area">
+    <div class="stage" id="stage">
+      <!-- Built-in CSS demo character (shown when no sprite sheet loaded) -->
+      <div class="demo-sprite" id="demoSprite">
+        <div class="face"></div>
+        <div class="eye left blink"></div>
+        <div class="eye right blink"></div>
+        <div class="body breathe"></div>
+      </div>
+      <!-- Sprite sheet container (hidden until sprite loaded) -->
+      <div class="sprite-container" id="spriteEl" style="display:none"></div>
+    </div>
+
+    <div class="controls">
+      <h2>Controls</h2>
+
+      <div class="drop-zone" id="dropZone">
+        <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp,.json">
+        Drop a sprite sheet PNG here (or click to browse).<br>
+        <small>You can also drop the .json metadata file to auto-configure.</small>
+      </div>
+
+      <div class="control-row">
+        <label>Frames</label>
+        <input type="range" id="frameCount" min="2" max="120" value="24">
+        <span class="control-value" id="frameCountVal">24</span>
+      </div>
+
+      <div class="control-row">
+        <label>Duration</label>
+        <input type="range" id="duration" min="0.2" max="5" step="0.1" value="2">
+        <span class="control-value" id="durationVal">2.0s</span>
+      </div>
+
+      <div class="control-row">
+        <label>Size</label>
+        <input type="range" id="frameSize" min="50" max="400" step="10" value="200">
+        <span class="control-value" id="frameSizeVal">200px</span>
+      </div>
+
+      <div class="btn-row">
+        <button class="primary" id="playBtn">Play</button>
+        <button id="pauseBtn">Pause</button>
+        <button id="resetBtn">Reset Demo</button>
+      </div>
+    </div>
+
+    <div class="code-section" id="codeSection">
+      <h2>Generated CSS</h2>
+      <pre id="codePreview">.sprite-animation {
+  width: 200px;
+  height: 200px;
+  background: url('your-spritesheet.png') left center;
+  animation: sprite-play 2.0s steps(24) infinite;
+}
+
+@keyframes sprite-play {
+  to { background-position: right center; }
+}</pre>
+    </div>
+  </div>
+
+  <footer>
+    <a href="https://github.com/TamerinTECH/claude-skill-klingai-animation">animate-character skill</a> — TamerinTech — MIT License
+  </footer>
+
+  <script>
+    const spriteEl = document.getElementById('spriteEl');
+    const demoSprite = document.getElementById('demoSprite');
+    const frameCountInput = document.getElementById('frameCount');
+    const durationInput = document.getElementById('duration');
+    const frameSizeInput = document.getElementById('frameSize');
+    const frameCountVal = document.getElementById('frameCountVal');
+    const durationVal = document.getElementById('durationVal');
+    const frameSizeVal = document.getElementById('frameSizeVal');
+    const codePreview = document.getElementById('codePreview');
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    let spriteLoaded = false;
+    let spriteUrl = null;
+    let sheetWidth = 0;
+    let sheetHeight = 0;
+
+    function updateAnimation() {
+      const frames = parseInt(frameCountInput.value);
+      const dur = parseFloat(durationInput.value);
+      const size = parseInt(frameSizeInput.value);
+
+      frameCountVal.textContent = frames;
+      durationVal.textContent = dur.toFixed(1) + 's';
+      frameSizeVal.textContent = size + 'px';
+
+      if (spriteLoaded) {
+        spriteEl.style.width = size + 'px';
+        spriteEl.style.height = size + 'px';
+        spriteEl.style.setProperty('--frame-count', frames);
+        spriteEl.style.setProperty('--duration', dur + 's');
+        spriteEl.style.backgroundSize = (frames * size) + 'px ' + size + 'px';
+      }
+
+      const totalWidth = frames * size;
+      const fileName = spriteLoaded ? 'your-spritesheet.png' : 'your-spritesheet.png';
+
+      codePreview.textContent =
+`.sprite-animation {
+  width: ${size}px;
+  height: ${size}px;
+  background: url('${fileName}') left center;
+  background-size: ${totalWidth}px ${size}px;
+  animation: sprite-play ${dur.toFixed(1)}s steps(${frames}) infinite;
+}
+
+@keyframes sprite-play {
+  to { background-position: right center; }
+}`;
+    }
+
+    frameCountInput.addEventListener('input', updateAnimation);
+    durationInput.addEventListener('input', updateAnimation);
+    frameSizeInput.addEventListener('input', updateAnimation);
+
+    document.getElementById('playBtn').addEventListener('click', () => {
+      if (spriteLoaded) {
+        spriteEl.classList.add('playing');
+      }
+    });
+
+    document.getElementById('pauseBtn').addEventListener('click', () => {
+      spriteEl.classList.remove('playing');
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      spriteLoaded = false;
+      spriteEl.style.display = 'none';
+      spriteEl.classList.remove('playing');
+      spriteEl.style.backgroundImage = '';
+      demoSprite.style.display = '';
+      frameCountInput.value = 24;
+      durationInput.value = 2;
+      frameSizeInput.value = 200;
+      updateAnimation();
+    });
+
+    function loadSpriteSheet(file) {
+      if (file.name.endsWith('.json')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const meta = JSON.parse(e.target.result);
+            if (meta.frameCount) frameCountInput.value = meta.frameCount;
+            if (meta.totalDuration) {
+              const dur = parseFloat(meta.totalDuration);
+              if (!isNaN(dur)) durationInput.value = dur;
+            }
+            if (meta.frameWidth) frameSizeInput.value = meta.frameWidth;
+            updateAnimation();
+          } catch {}
+        };
+        reader.readAsText(file);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          sheetWidth = img.naturalWidth;
+          sheetHeight = img.naturalHeight;
+          spriteUrl = e.target.result;
+          spriteLoaded = true;
+
+          demoSprite.style.display = 'none';
+          spriteEl.style.display = '';
+          spriteEl.style.backgroundImage = `url('${spriteUrl}')`;
+
+          // Auto-detect frame count from aspect ratio (horizontal layout)
+          const frames = Math.round(sheetWidth / sheetHeight);
+          if (frames >= 2 && frames <= 120) {
+            frameCountInput.value = frames;
+          }
+          frameSizeInput.value = sheetHeight;
+
+          updateAnimation();
+          spriteEl.classList.add('playing');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Drag and drop
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files[0]) loadSpriteSheet(e.target.files[0]);
+    });
+
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) loadSpriteSheet(file);
+    });
+
+    updateAnimation();
+  </script>
+</body>
+</html>
