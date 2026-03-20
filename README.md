@@ -185,7 +185,8 @@ node .claude/skills/animate-character/scripts/video-to-spritesheet.mjs \
 |--------|---------|-------------|
 | `--input` | (required) | Path to MP4 video |
 | `--output` | `./sprites` | Output directory |
-| `--fps` | `12` | Frames per second to extract |
+| `--quality` | `high` | Preset: `low` (8fps, lighter) or `high` (12fps, smoother) |
+| `--fps` | `12` / `8` | Frames per second to extract. Overrides `--quality` fps. |
 | `--width` | `200` | Frame width in pixels |
 | `--height` | (auto) | Frame height (auto preserves aspect ratio) |
 | `--remove-bg` | `green` | Background removal: `green`, `none` |

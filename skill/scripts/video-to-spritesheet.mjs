@@ -20,7 +20,7 @@
 import { execSync } from 'node:child_process';
 import { readdir, readFile, writeFile, mkdir, rm, stat } from 'node:fs/promises';
 import { resolve, join, basename } from 'node:path';
-import { existsSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, copyFileSync } from 'node:fs';
 
 // ---------- CLI argument parsing ----------
 
@@ -41,7 +41,9 @@ const args = parseArgs(process.argv);
 
 const INPUT = args['input'];
 const OUTPUT_DIR = args['output'] || './sprites';
-const FPS = parseInt(args['fps'] || '12', 10);
+const QUALITY = args['quality'] || 'high';
+const DEFAULT_FPS = QUALITY === 'low' ? '8' : '12';
+const FPS = parseInt(args['fps'] || DEFAULT_FPS, 10);
 const FRAME_WIDTH = parseInt(args['width'] || '200', 10);
 const FRAME_HEIGHT = args['height'] ? parseInt(args['height'], 10) : null;
 const REMOVE_BG = args['remove-bg'] || 'green';
@@ -98,11 +100,10 @@ function extractFrames(inputPath, framesDir, fps, width, height) {
   const cmd = `ffmpeg -y -i "${inputPath}" -vf "fps=${fps},${scaleFilter}" "${join(framesDir, 'frame_%04d.png')}"`;
   run(cmd);
 
-  // Return sorted frame file list
-  const files = execSync(`ls "${framesDir}" | sort`, { encoding: 'utf-8' })
-    .trim()
-    .split('\n')
-    .filter(f => f.endsWith('.png'));
+  // Return sorted frame file list (cross-platform)
+  const files = readdirSync(framesDir)
+    .filter(f => f.endsWith('.png'))
+    .sort();
 
   return files;
 }
@@ -113,7 +114,7 @@ function removeGreenScreen(framesDir, frameFiles) {
   // Use ffmpeg's chromakey filter to remove green background
   // Process each frame individually for transparency support
   const processedDir = join(framesDir, 'processed');
-  execSync(`mkdir -p "${processedDir}"`);
+  mkdirSync(processedDir, { recursive: true });
 
   for (const file of frameFiles) {
     const input = join(framesDir, file);
@@ -130,7 +131,7 @@ function removeGreenScreen(framesDir, frameFiles) {
         run(cmdFallback);
       } catch {
         // Last resort: copy as-is
-        execSync(`cp "${input}" "${output}"`);
+        copyFileSync(input, output);
       }
     }
   }
@@ -284,7 +285,8 @@ async function main() {
     console.error('');
     console.error('Options:');
     console.error('  --output=<dir>       Output directory (default: ./sprites)');
-    console.error('  --fps=<number>       Frames per second to extract (default: 12)');
+    console.error('  --quality=<preset>   Quality preset: low (8fps) or high (12fps) (default: high)');
+    console.error('  --fps=<number>       Frames per second (default: 12 high, 8 low). Overrides --quality.');
     console.error('  --width=<px>         Frame width in pixels (default: 200)');
     console.error('  --height=<px>        Frame height in pixels (default: auto)');
     console.error('  --remove-bg=<mode>   Background removal: green, none (default: green)');

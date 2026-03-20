@@ -135,7 +135,8 @@ Example CSS output:
 ## Configuration Options
 
 The user can customize:
-- `--fps` — Frames per second to extract (default: 12, range: 8-30)
+- `--quality` — Output quality preset: "low" (8fps, ~150KB, lightweight) or "high" (12fps, ~500KB+, smoother). Default: high. This controls fps and is a convenience shortcut.
+- `--fps` — Frames per second to extract (default: 12 for high, 8 for low, range: 8-30). Overrides --quality fps if both specified.
 - `--width` — Frame width in pixels (default: 200)
 - `--height` — Frame height in pixels (default: auto, maintains aspect ratio)
 - `--duration` — Video duration in seconds (default: 5, options: 5 or 10)
