@@ -39,45 +39,64 @@
       align-items: center;
       gap: 1.5rem;
       width: 100%;
-      max-width: 720px;
+      max-width: 640px;
     }
 
-    /* Animation stage */
+    /* Pipeline diagram */
+    .pipeline {
+      width: 100%;
+      background: #1e293b;
+      border-radius: 0.75rem;
+      padding: 1rem 1.25rem;
+      border: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .pipeline-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+      padding: 0.4rem 0.6rem;
+      background: #0f172a;
+      border-radius: 0.5rem;
+      border: 1px solid #334155;
+      min-width: 80px;
+    }
+
+    .pipeline-step .step-icon { font-size: 1.1rem; }
+    .pipeline-step .step-label { font-size: 0.65rem; color: #94a3b8; }
+    .pipeline-arrow { color: #475569; font-size: 1.1rem; }
+
+    /* Stage */
     .stage {
       position: relative;
-      width: 320px;
-      height: 320px;
+      width: 300px;
+      height: 300px;
       border-radius: 1rem;
       border: 1px solid #334155;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      transition: background 0.5s ease;
-      background-color: #0f172a;
-      background-size: cover;
-      background-position: center;
-    }
-
-    .stage.bg-none {
       background: radial-gradient(ellipse at center bottom, #1e293b 0%, #0f172a 70%);
     }
 
     .stage .character-img {
-      max-width: 220px;
-      max-height: 220px;
+      max-width: 240px;
+      max-height: 240px;
       object-fit: contain;
-      z-index: 2;
       filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
-    }
-
-    .stage .character-img.bob {
       animation: bob 2.5s ease-in-out infinite;
     }
 
     @keyframes bob {
       0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
+      50% { transform: translateY(-8px); }
     }
 
     .sprite-container {
@@ -85,8 +104,6 @@
       height: 200px;
       background-repeat: no-repeat;
       background-position: left center;
-      image-rendering: auto;
-      z-index: 2;
       filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
     }
 
@@ -98,68 +115,14 @@
       to { background-position: right center; }
     }
 
-    /* Character + Background Selectors */
-    .selector-section {
-      width: 100%;
-      display: flex;
-      gap: 1rem;
-    }
-
-    .selector-panel {
-      flex: 1;
-      background: #1e293b;
-      border-radius: 0.75rem;
-      padding: 1rem;
-      border: 1px solid #334155;
-    }
-
-    .selector-panel h3 {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #94a3b8;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.75rem;
-    }
-
-    .thumb-row {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .thumb {
-      width: 64px;
-      height: 64px;
-      border-radius: 0.5rem;
-      border: 2px solid #334155;
-      cursor: pointer;
-      overflow: hidden;
-      transition: all 0.15s;
-      background-size: cover;
-      background-position: center;
-      position: relative;
-    }
-
-    .thumb:hover { border-color: #818cf8; transform: scale(1.05); }
-    .thumb.active { border-color: #818cf8; box-shadow: 0 0 0 2px rgba(129,140,248,0.3); }
-
-    .thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .thumb .thumb-label {
+    .stage-label {
       position: absolute;
-      bottom: 0;
+      bottom: 8px;
       left: 0;
       right: 0;
-      background: rgba(0,0,0,0.7);
-      color: #e2e8f0;
-      font-size: 0.6rem;
       text-align: center;
-      padding: 2px 0;
+      font-size: 0.7rem;
+      color: #475569;
     }
 
     /* Controls */
@@ -279,7 +242,7 @@
 
     .info-banner {
       width: 100%;
-      max-width: 720px;
+      max-width: 640px;
       background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(56, 189, 248, 0.1));
       border: 1px solid #334155;
       border-radius: 0.75rem;
@@ -300,45 +263,6 @@
       color: #475569;
       font-size: 0.8rem;
     }
-
-    /* Pipeline diagram */
-    .pipeline {
-      width: 100%;
-      background: #1e293b;
-      border-radius: 0.75rem;
-      padding: 1.25rem;
-      border: 1px solid #334155;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-
-    .pipeline-step {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.25rem;
-      padding: 0.5rem 0.75rem;
-      background: #0f172a;
-      border-radius: 0.5rem;
-      border: 1px solid #334155;
-      min-width: 90px;
-    }
-
-    .pipeline-step .step-icon { font-size: 1.25rem; }
-    .pipeline-step .step-label { font-size: 0.7rem; color: #94a3b8; }
-
-    .pipeline-arrow {
-      color: #475569;
-      font-size: 1.25rem;
-    }
-
-    @media (max-width: 600px) {
-      .selector-section { flex-direction: column; }
-      .stage { width: 280px; height: 280px; }
-    }
   </style>
 </head>
 <body>
@@ -348,11 +272,10 @@
   <div class="info-banner">
     <strong>How it works:</strong> This skill takes a static character image, generates a short animation video via
     <a href="https://klingai.com">Kling AI</a>, then converts it into a lightweight sprite sheet PNG.
-    The result is a pure CSS animation — no JavaScript runtime, no video files, just one image + a few lines of CSS.
+    The result is a pure CSS animation — no JS runtime, no video files, just one image + a few lines of CSS.
   </div>
 
   <div class="demo-area">
-    <!-- Pipeline visualization -->
     <div class="pipeline">
       <div class="pipeline-step">
         <span class="step-icon">🖼️</span>
@@ -375,63 +298,19 @@
       </div>
     </div>
 
-    <!-- Stage -->
-    <div class="stage bg-none" id="stage">
-      <img class="character-img bob" id="characterImg" src="fox-coding.png" alt="Demo character">
+    <div class="stage" id="stage">
+      <img class="character-img" id="characterImg" src="fox-coding.png" alt="Dev Fox — source character">
       <div class="sprite-container" id="spriteEl" style="display:none"></div>
+      <span class="stage-label" id="stageLabel">Source image — drop a sprite sheet to animate</span>
     </div>
 
-    <!-- Character + Background selectors -->
-    <div class="selector-section">
-      <div class="selector-panel">
-        <h3>Character</h3>
-        <div class="thumb-row">
-          <div class="thumb active" data-character="fox-coding.png" id="charFoxCoding">
-            <img src="fox-coding.png" alt="Coding Fox">
-            <span class="thumb-label">Dev Fox</span>
-          </div>
-          <div class="thumb" data-character="shark-business.png" id="charSharkBiz">
-            <img src="shark-business.png" alt="Business Shark">
-            <span class="thumb-label">Biz Shark</span>
-          </div>
-          <div class="thumb" data-character="hipster-fox.png" id="charHipsterFox">
-            <img src="hipster-fox.png" alt="Hipster Fox">
-            <span class="thumb-label">Hipster Fox</span>
-          </div>
-          <div class="thumb" id="charCustom" style="background:#1e293b; display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:#475569;">
-            +
-            <span class="thumb-label">Upload</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="selector-panel">
-        <h3>Background</h3>
-        <div class="thumb-row">
-          <div class="thumb active" data-bg="none" style="background: radial-gradient(ellipse at center bottom, #1e293b 0%, #0f172a 70%);">
-            <span class="thumb-label">Dark</span>
-          </div>
-          <div class="thumb" data-bg="bg-underwater.png" style="background-image: url('bg-underwater.png');">
-            <span class="thumb-label">Ocean</span>
-          </div>
-          <div class="thumb" data-bg="bg-forest.png" style="background-image: url('bg-forest.png');">
-            <span class="thumb-label">Forest</span>
-          </div>
-          <div class="thumb" data-bg="bg-space.png" style="background-image: url('bg-space.png');">
-            <span class="thumb-label">Space</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Controls -->
     <div class="controls">
-      <h2>Sprite Sheet Controls</h2>
+      <h2>Try It</h2>
 
       <div class="drop-zone" id="dropZone">
         <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp,.json">
         Drop a sprite sheet PNG here to preview the animation<br>
-        <small>Or drop the .json metadata file to auto-configure frames and timing.</small>
+        <small>Or drop the .json metadata to auto-configure.</small>
       </div>
 
       <div class="control-row">
@@ -453,13 +332,12 @@
       </div>
 
       <div class="btn-row">
-        <button class="primary" id="playBtn">Play Sprite Sheet</button>
+        <button class="primary" id="playBtn">Play</button>
         <button id="pauseBtn">Pause</button>
         <button id="resetBtn">Reset</button>
       </div>
     </div>
 
-    <!-- Code output -->
     <div class="code-section">
       <h2>Generated CSS</h2>
       <pre id="codePreview">.sprite-animation {
@@ -484,6 +362,7 @@
     const stage = document.getElementById('stage');
     const characterImg = document.getElementById('characterImg');
     const spriteEl = document.getElementById('spriteEl');
+    const stageLabel = document.getElementById('stageLabel');
     const frameCountInput = document.getElementById('frameCount');
     const durationInput = document.getElementById('duration');
     const frameSizeInput = document.getElementById('frameSize');
@@ -496,69 +375,6 @@
 
     let spriteLoaded = false;
 
-    // ---- Character selection ----
-    const charThumbs = document.querySelectorAll('[data-character]');
-    const charCustom = document.getElementById('charCustom');
-
-    charThumbs.forEach(thumb => {
-      thumb.addEventListener('click', () => {
-        charThumbs.forEach(t => t.classList.remove('active'));
-        charCustom.classList.remove('active');
-        thumb.classList.add('active');
-        characterImg.src = thumb.dataset.character;
-        // Show static character, hide sprite
-        if (spriteLoaded) {
-          spriteLoaded = false;
-          spriteEl.style.display = 'none';
-          spriteEl.classList.remove('playing');
-          characterImg.style.display = '';
-        }
-      });
-    });
-
-    // Custom character upload
-    const charFileInput = document.createElement('input');
-    charFileInput.type = 'file';
-    charFileInput.accept = 'image/png,image/jpeg,image/webp';
-    charFileInput.style.display = 'none';
-    document.body.appendChild(charFileInput);
-
-    charCustom.addEventListener('click', () => charFileInput.click());
-    charFileInput.addEventListener('change', (e) => {
-      if (!e.target.files[0]) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        charThumbs.forEach(t => t.classList.remove('active'));
-        charCustom.classList.add('active');
-        characterImg.src = ev.target.result;
-        if (spriteLoaded) {
-          spriteLoaded = false;
-          spriteEl.style.display = 'none';
-          spriteEl.classList.remove('playing');
-          characterImg.style.display = '';
-        }
-      };
-      reader.readAsDataURL(e.target.files[0]);
-    });
-
-    // ---- Background selection ----
-    const bgThumbs = document.querySelectorAll('[data-bg]');
-    bgThumbs.forEach(thumb => {
-      thumb.addEventListener('click', () => {
-        bgThumbs.forEach(t => t.classList.remove('active'));
-        thumb.classList.add('active');
-        const bg = thumb.dataset.bg;
-        if (bg === 'none') {
-          stage.style.backgroundImage = '';
-          stage.className = 'stage bg-none';
-        } else {
-          stage.className = 'stage';
-          stage.style.backgroundImage = `url('${bg}')`;
-        }
-      });
-    });
-
-    // ---- Sprite sheet controls ----
     function updateAnimation() {
       const frames = parseInt(frameCountInput.value);
       const dur = parseFloat(durationInput.value);
@@ -596,9 +412,7 @@
     frameSizeInput.addEventListener('input', updateAnimation);
 
     document.getElementById('playBtn').addEventListener('click', () => {
-      if (spriteLoaded) {
-        spriteEl.classList.add('playing');
-      }
+      if (spriteLoaded) spriteEl.classList.add('playing');
     });
 
     document.getElementById('pauseBtn').addEventListener('click', () => {
@@ -611,6 +425,7 @@
       spriteEl.classList.remove('playing');
       spriteEl.style.backgroundImage = '';
       characterImg.style.display = '';
+      stageLabel.textContent = 'Source image \u2014 drop a sprite sheet to animate';
       frameCountInput.value = 24;
       durationInput.value = 2;
       frameSizeInput.value = 200;
@@ -644,6 +459,7 @@
           characterImg.style.display = 'none';
           spriteEl.style.display = '';
           spriteEl.style.backgroundImage = `url('${e.target.result}')`;
+          stageLabel.textContent = 'Sprite sheet playing \u2014 ' + img.naturalWidth + 'x' + img.naturalHeight + 'px';
 
           const frames = Math.round(img.naturalWidth / img.naturalHeight);
           if (frames >= 2 && frames <= 120) {
@@ -659,7 +475,6 @@
       reader.readAsDataURL(file);
     }
 
-    // Drag and drop
     dropZone.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', (e) => {
       if (e.target.files[0]) loadSpriteSheet(e.target.files[0]);
@@ -670,15 +485,12 @@
       dropZone.classList.add('dragover');
     });
 
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('dragover');
-    });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
 
     dropZone.addEventListener('drop', (e) => {
       e.preventDefault();
       dropZone.classList.remove('dragover');
-      const file = e.dataTransfer.files[0];
-      if (file) loadSpriteSheet(file);
+      if (e.dataTransfer.files[0]) loadSpriteSheet(e.dataTransfer.files[0]);
     });
 
     updateAnimation();

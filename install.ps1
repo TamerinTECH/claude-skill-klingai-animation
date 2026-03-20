@@ -1,4 +1,4 @@
-# Animate Character Skill — Installer for Claude Code
+# Animate Character Skill - Installer for Claude Code
 # Installs the skill to your personal ~/.claude/skills directory
 # and optionally saves your Kling AI API credentials
 
@@ -7,7 +7,7 @@ $ErrorActionPreference = "Stop"
 $skipCredentials = $false
 $SkillName = "animate-character"
 $SourceDir = Join-Path $PSScriptRoot "skill"
-$TargetDir = Join-Path $env:USERPROFILE ".claude" "skills" $SkillName
+$TargetDir = Join-Path (Join-Path (Join-Path $env:USERPROFILE ".claude") "skills") $SkillName
 
 Write-Host ""
 Write-Host "=== Animate Character Skill Installer ===" -ForegroundColor Cyan
@@ -63,7 +63,7 @@ Write-Host "  [..] Copying skill to $TargetDir"
 Copy-Item -Recurse $SourceDir $TargetDir
 
 if (-not (Test-Path (Join-Path $TargetDir "SKILL.md"))) {
-    Write-Host "  [!!] Installation failed — files not copied" -ForegroundColor Red
+    Write-Host "  [!!] Installation failed - files not copied" -ForegroundColor Red
     exit 1
 }
 
@@ -84,10 +84,9 @@ if ($existingAccess -and $existingSecret) {
     Write-Host "       Access Key: $($existingAccess.Substring(0, [Math]::Min(8, $existingAccess.Length)))..." -ForegroundColor DarkGray
     Write-Host ""
     $reconfigure = Read-Host "  Do you want to update them? (y/N)"
-    if ($reconfigure -ne 'y' -and $reconfigure -ne 'Y') {
+    if ($reconfigure -ne "y" -and $reconfigure -ne "Y") {
         Write-Host "  [OK] Keeping existing credentials" -ForegroundColor Green
         Write-Host ""
-        # Skip to done
         $skipCredentials = $true
     }
 }
@@ -95,19 +94,18 @@ if ($existingAccess -and $existingSecret) {
 if (-not $skipCredentials) {
     Write-Host "  The skill needs Kling AI API credentials to generate animations." -ForegroundColor White
     Write-Host ""
-    Write-Host '  If you do not have them yet:' -ForegroundColor White
-    Write-Host '    1. Go to https://app.klingai.com/global/dev' -ForegroundColor Cyan
-    Write-Host '    2. Sign up / log in' -ForegroundColor Cyan
-    Write-Host '    3. Create an API key — you will get an Access Key + Secret Key' -ForegroundColor Cyan
+    Write-Host "  If you do not have them yet:" -ForegroundColor White
+    Write-Host "    1. Go to https://app.klingai.com/global/dev" -ForegroundColor Cyan
+    Write-Host "    2. Sign up or log in" -ForegroundColor Cyan
+    Write-Host "    3. Create an API key (you will get an Access Key + Secret Key)" -ForegroundColor Cyan
     Write-Host ""
 
     $setupNow = Read-Host "  Do you want to enter your API keys now? (Y/n)"
 
-    if ($setupNow -eq 'n' -or $setupNow -eq 'N') {
+    if ($setupNow -eq "n" -or $setupNow -eq "N") {
         Write-Host ""
         Write-Host "  [..] Skipping credentials setup. You can set them later:" -ForegroundColor DarkYellow
-        Write-Host '       [Environment]::SetEnvironmentVariable("KLING_ACCESS_KEY", "your-key", "User")' -ForegroundColor DarkGray
-        Write-Host '       [Environment]::SetEnvironmentVariable("KLING_SECRET_KEY", "your-key", "User")' -ForegroundColor DarkGray
+        Write-Host "       See the README for manual credential setup instructions." -ForegroundColor DarkGray
         Write-Host "       Then restart your terminal." -ForegroundColor DarkGray
     } else {
         Write-Host ""
@@ -143,7 +141,7 @@ Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  To use the skill, open Claude Code and type:" -ForegroundColor White
 Write-Host ""
-Write-Host '  /animate-character ./character.png "idle animation, blinking"' -ForegroundColor Cyan
+Write-Host "  /animate-character ./character.png `"idle animation, blinking`"" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "  Claude will analyze your image, generate an animation," -ForegroundColor DarkGray
 Write-Host "  and produce a sprite sheet PNG ready for your website." -ForegroundColor DarkGray
