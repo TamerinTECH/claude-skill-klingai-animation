@@ -2,10 +2,14 @@
 
 Turn any static character image into a lightweight, web-ready sprite sheet animation — powered by [Kling AI](https://klingai.com) and [Claude Code](https://docs.anthropic.com/en/docs/claude-code).
 
+<p align="center">
+  <img src="demo/fox-coding-animation.gif" alt="Dev Fox animation demo" width="300">
+</p>
+
 **One image + one sentence = production-ready CSS sprite animation.**
 
 ```
-/animate-character ./panda.png "idle animation, blinking and breathing"
+/animate-character ./character.png "typing excitedly, getting faster"
 ```
 
 ## Why Use This?
