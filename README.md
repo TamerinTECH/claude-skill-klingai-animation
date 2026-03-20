@@ -272,4 +272,10 @@ node .claude/skills/animate-character/scripts/video-to-spritesheet.mjs \
 
 ## License
 
-[MIT](LICENSE) — [TamerinTech](https://github.com/TamerinTECH)
+[MIT](LICENSE) — use at your own risk. No warranty, no guarantees.
+
+Kling AI API usage is subject to [Kling AI's terms](https://klingai.com). API costs are your responsibility.
+
+---
+
+Built by [TamerinTech](https://www.tamerin.tech) | [GitHub](https://github.com/TamerinTECH)
