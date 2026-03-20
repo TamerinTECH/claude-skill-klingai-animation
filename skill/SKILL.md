@@ -22,19 +22,36 @@ ffmpeg must be installed (verify with `ffmpeg -version`).
 
 ## Workflow
 
+### Step 0: Resolve the Source Image
+
+The user may provide the image in different ways. Handle ALL of these:
+
+1. **Path as argument** — `$ARGUMENTS[0]` contains a file path (e.g., `./character.png`). Verify the file exists, then read it.
+
+2. **Image attached / drag-and-dropped** — The user dragged an image file into Claude Code. The image is visible in the conversation but `$ARGUMENTS[0]` may not be a valid path. In this case:
+   - You can already see the image visually — use it for analysis in Step 1.
+   - You still need the **file path on disk** for the generation script. Check if the attachment metadata includes the original path.
+   - If you cannot determine the path, ask the user: "I can see your character image. Where is the file located on disk? (e.g., `./demo/fox.png`)"
+
+3. **Only a description, no image** — `$ARGUMENTS` contains only text. Ask the user to provide an image path or attach an image.
+
+Once you have a confirmed file path on disk, store it as the `SOURCE_IMAGE_PATH` for use in Step 3.
+
+The animation description may come from `$ARGUMENTS[1]` (if a path was the first argument) or from the full `$ARGUMENTS` text (if the image was attached separately). Parse accordingly.
+
 ### Step 1: Analyze the Source Image
 
-Read the source image provided as `$ARGUMENTS[0]` to understand the character:
+Read the source image to understand the character:
 - What type of character is it (animal, human, cartoon, etc.)
 - Its visual style (flat, 3D, cartoon, pixel art, etc.)
 - Background type (transparent, solid color, complex)
 - Character pose and orientation
 
-Tell the user what you see and confirm the animation intention from `$ARGUMENTS[1]`.
+Tell the user what you see and confirm the animation intention.
 
 ### Step 2: Generate the Video Prompt
 
-Based on the image analysis and the user's animation description (`$ARGUMENTS[1]`), craft an optimized Kling AI video prompt. Follow these guidelines:
+Based on the image analysis and the user's animation description, craft an optimized Kling AI video prompt. Follow these guidelines:
 
 - **Always specify** "solid green background" or "solid colored background" for easy chroma-key removal
 - **Always specify** "no camera movement" to keep the character centered
@@ -57,7 +74,7 @@ Use the Node.js script at `${CLAUDE_SKILL_DIR}/scripts/kling-generate.mjs` to ge
 node "${CLAUDE_SKILL_DIR}/scripts/kling-generate.mjs" \
   --access-key="$KLING_ACCESS_KEY" \
   --secret-key="$KLING_SECRET_KEY" \
-  --image="<absolute-path-to-source-image>" \
+  --image="<SOURCE_IMAGE_PATH>" \
   --prompt="<the-approved-prompt>" \
   --duration=5 \
   --output="<output-directory>/animation.mp4"
@@ -65,9 +82,10 @@ node "${CLAUDE_SKILL_DIR}/scripts/kling-generate.mjs" \
 
 The script will:
 1. Generate a JWT token from the access/secret keys
-2. Submit the image-to-video task to Kling AI
-3. Poll for completion (every 10 seconds, up to 10 minutes)
-4. Download the resulting MP4 video
+2. Read the image and encode it as raw base64 (no data URI prefix — Kling API requirement)
+3. Submit the image-to-video task to Kling AI
+4. Poll for completion (every 10 seconds, up to 10 minutes)
+5. Download the resulting MP4 video
 
 If the user hasn't set environment variables, pass the keys directly via `--access-key` and `--secret-key` flags (ask the user for them).
 
@@ -121,7 +139,7 @@ The user can customize:
 - `--width` — Frame width in pixels (default: 200)
 - `--height` — Frame height in pixels (default: auto, maintains aspect ratio)
 - `--duration` — Video duration in seconds (default: 5, options: 5 or 10)
-- `--model` — Kling model version (default: kling-v1-6)
+- `--model` — Kling model version (default: kling-v3)
 - `--mode` — Quality mode: "std" (fast) or "pro" (higher quality) (default: std)
 - `--remove-bg` — Background removal method: "green" (chroma-key), "auto" (AI-based), or "none" (default: green)
 - `--format` — Output format: "horizontal" (single row), "grid" (rows x cols), or "vertical" (single column) (default: horizontal)

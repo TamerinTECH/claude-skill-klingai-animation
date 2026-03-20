@@ -42,7 +42,7 @@ const SECRET_KEY = args['secret-key'] || process.env.KLING_SECRET_KEY;
 const IMAGE_PATH = args['image'];
 const PROMPT = args['prompt'] || '';
 const DURATION = args['duration'] || '5';
-const MODEL = args['model'] || 'kling-v1-6';
+const MODEL = args['model'] || 'kling-v3';
 const MODE = args['mode'] || 'std';
 const OUTPUT = args['output'] || './animation.mp4';
 const ASPECT_RATIO = args['aspect-ratio'] || '1:1';
@@ -116,16 +116,9 @@ async function apiRequest(method, path, body, token) {
 
 async function imageToBase64(imagePath) {
   const absPath = resolve(imagePath);
-  const ext = extname(absPath).toLowerCase();
-  const mimeTypes = {
-    '.png': 'image/png',
-    '.jpg': 'image/jpeg',
-    '.jpeg': 'image/jpeg',
-    '.webp': 'image/webp'
-  };
-  const mime = mimeTypes[ext] || 'image/png';
   const buffer = await readFile(absPath);
-  return `data:${mime};base64,${buffer.toString('base64')}`;
+  // Kling API requires raw base64 string — NO data URI prefix
+  return buffer.toString('base64');
 }
 
 async function downloadFile(url, outputPath) {

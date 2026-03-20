@@ -174,7 +174,7 @@ node .claude/skills/animate-character/scripts/video-to-spritesheet.mjs \
 | `--image` | (required) | Path to source character image |
 | `--prompt` | (required) | Animation description |
 | `--duration` | `5` | Video duration in seconds (5 or 10) |
-| `--model` | `kling-v1-6` | Kling model version |
+| `--model` | `kling-v3` | Kling model version |
 | `--mode` | `std` | Quality: `std` (fast) or `pro` (higher quality) |
 | `--aspect-ratio` | `1:1` | Output aspect ratio |
 | `--output` | `./animation.mp4` | Output file path |
