@@ -37,7 +37,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 2rem;
+      gap: 1.5rem;
       width: 100%;
       max-width: 720px;
     }
@@ -45,25 +45,39 @@
     /* Animation stage */
     .stage {
       position: relative;
-      width: 240px;
-      height: 240px;
+      width: 320px;
+      height: 320px;
       border-radius: 1rem;
-      background: radial-gradient(ellipse at center bottom, #1e293b 0%, #0f172a 70%);
       border: 1px solid #334155;
       display: flex;
       align-items: center;
       justify-content: center;
       overflow: hidden;
+      transition: background 0.5s ease;
+      background-color: #0f172a;
+      background-size: cover;
+      background-position: center;
     }
 
-    .stage::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 10%;
-      right: 10%;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, #475569, transparent);
+    .stage.bg-none {
+      background: radial-gradient(ellipse at center bottom, #1e293b 0%, #0f172a 70%);
+    }
+
+    .stage .character-img {
+      max-width: 220px;
+      max-height: 220px;
+      object-fit: contain;
+      z-index: 2;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+    }
+
+    .stage .character-img.bob {
+      animation: bob 2.5s ease-in-out infinite;
+    }
+
+    @keyframes bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
     }
 
     .sprite-container {
@@ -72,6 +86,8 @@
       background-repeat: no-repeat;
       background-position: left center;
       image-rendering: auto;
+      z-index: 2;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
     }
 
     .sprite-container.playing {
@@ -82,65 +98,68 @@
       to { background-position: right center; }
     }
 
-    /* Built-in demo sprite (procedural CSS frames) */
-    .demo-sprite {
-      width: 200px;
-      height: 200px;
+    /* Character + Background Selectors */
+    .selector-section {
+      width: 100%;
+      display: flex;
+      gap: 1rem;
+    }
+
+    .selector-panel {
+      flex: 1;
+      background: #1e293b;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      border: 1px solid #334155;
+    }
+
+    .selector-panel h3 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+    }
+
+    .thumb-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .thumb {
+      width: 64px;
+      height: 64px;
+      border-radius: 0.5rem;
+      border: 2px solid #334155;
+      cursor: pointer;
+      overflow: hidden;
+      transition: all 0.15s;
+      background-size: cover;
+      background-position: center;
       position: relative;
     }
 
-    .demo-sprite .body {
+    .thumb:hover { border-color: #818cf8; transform: scale(1.05); }
+    .thumb.active { border-color: #818cf8; box-shadow: 0 0 0 2px rgba(129,140,248,0.3); }
+
+    .thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .thumb .thumb-label {
       position: absolute;
-      width: 80px;
-      height: 90px;
-      background: #f8f8f8;
-      border-radius: 50% 50% 45% 45%;
-      top: 55px;
-      left: 60px;
-      border: 3px solid #333;
-    }
-
-    .demo-sprite .face {
-      position: absolute;
-      width: 68px;
-      height: 68px;
-      background: #f8f8f8;
-      border-radius: 50%;
-      top: 10px;
-      left: 66px;
-      border: 3px solid #333;
-      z-index: 2;
-    }
-
-    .demo-sprite .eye {
-      position: absolute;
-      width: 10px;
-      height: 12px;
-      background: #333;
-      border-radius: 50%;
-      top: 24px;
-      z-index: 3;
-    }
-
-    .demo-sprite .eye.left { left: 82px; }
-    .demo-sprite .eye.right { left: 108px; }
-
-    .demo-sprite .eye.blink {
-      animation: blink 3s ease-in-out infinite;
-    }
-
-    @keyframes blink {
-      0%, 90%, 100% { transform: scaleY(1); }
-      95% { transform: scaleY(0.1); }
-    }
-
-    .demo-sprite .body.breathe {
-      animation: breathe 3s ease-in-out infinite;
-    }
-
-    @keyframes breathe {
-      0%, 100% { transform: scaleY(1) translateY(0); }
-      50% { transform: scaleY(1.03) translateY(-2px); }
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.7);
+      color: #e2e8f0;
+      font-size: 0.6rem;
+      text-align: center;
+      padding: 2px 0;
     }
 
     /* Controls */
@@ -215,12 +234,12 @@
     .drop-zone {
       border: 2px dashed #475569;
       border-radius: 0.75rem;
-      padding: 2rem;
+      padding: 1.25rem;
       text-align: center;
       cursor: pointer;
       transition: all 0.2s;
       color: #94a3b8;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
     }
 
     .drop-zone:hover, .drop-zone.dragover {
@@ -281,6 +300,45 @@
       color: #475569;
       font-size: 0.8rem;
     }
+
+    /* Pipeline diagram */
+    .pipeline {
+      width: 100%;
+      background: #1e293b;
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      border: 1px solid #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .pipeline-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.5rem 0.75rem;
+      background: #0f172a;
+      border-radius: 0.5rem;
+      border: 1px solid #334155;
+      min-width: 90px;
+    }
+
+    .pipeline-step .step-icon { font-size: 1.25rem; }
+    .pipeline-step .step-label { font-size: 0.7rem; color: #94a3b8; }
+
+    .pipeline-arrow {
+      color: #475569;
+      font-size: 1.25rem;
+    }
+
+    @media (max-width: 600px) {
+      .selector-section { flex-direction: column; }
+      .stage { width: 280px; height: 280px; }
+    }
   </style>
 </head>
 <body>
@@ -288,30 +346,88 @@
   <p class="subtitle">Animate Character — Claude Code Skill</p>
 
   <div class="info-banner">
-    <strong>How it works:</strong> This demo shows how a single PNG sprite sheet can render smooth character animation using only CSS <code>steps()</code>.
-    Drop in a sprite sheet generated by the <a href="https://github.com/TamerinTECH/claude-skill-klingai-animation">animate-character skill</a>, or use the built-in example below.
+    <strong>How it works:</strong> This skill takes a static character image, generates a short animation video via
+    <a href="https://klingai.com">Kling AI</a>, then converts it into a lightweight sprite sheet PNG.
+    The result is a pure CSS animation — no JavaScript runtime, no video files, just one image + a few lines of CSS.
   </div>
 
   <div class="demo-area">
-    <div class="stage" id="stage">
-      <!-- Built-in CSS demo character (shown when no sprite sheet loaded) -->
-      <div class="demo-sprite" id="demoSprite">
-        <div class="face"></div>
-        <div class="eye left blink"></div>
-        <div class="eye right blink"></div>
-        <div class="body breathe"></div>
+    <!-- Pipeline visualization -->
+    <div class="pipeline">
+      <div class="pipeline-step">
+        <span class="step-icon">🖼️</span>
+        <span class="step-label">Source Image</span>
       </div>
-      <!-- Sprite sheet container (hidden until sprite loaded) -->
+      <span class="pipeline-arrow">→</span>
+      <div class="pipeline-step">
+        <span class="step-icon">🎬</span>
+        <span class="step-label">Kling AI Video</span>
+      </div>
+      <span class="pipeline-arrow">→</span>
+      <div class="pipeline-step">
+        <span class="step-icon">🔲</span>
+        <span class="step-label">Extract Frames</span>
+      </div>
+      <span class="pipeline-arrow">→</span>
+      <div class="pipeline-step">
+        <span class="step-icon">✨</span>
+        <span class="step-label">Sprite Sheet</span>
+      </div>
+    </div>
+
+    <!-- Stage -->
+    <div class="stage bg-none" id="stage">
+      <img class="character-img bob" id="characterImg" src="happy-shark.png" alt="Demo character">
       <div class="sprite-container" id="spriteEl" style="display:none"></div>
     </div>
 
+    <!-- Character + Background selectors -->
+    <div class="selector-section">
+      <div class="selector-panel">
+        <h3>Character</h3>
+        <div class="thumb-row">
+          <div class="thumb active" data-character="happy-shark.png" id="charShark">
+            <img src="happy-shark.png" alt="Shark">
+            <span class="thumb-label">Shark</span>
+          </div>
+          <div class="thumb" data-character="funny-robot.png" id="charRobot">
+            <img src="funny-robot.png" alt="Robot">
+            <span class="thumb-label">Robot</span>
+          </div>
+          <div class="thumb" id="charCustom" style="background:#1e293b; display:flex; align-items:center; justify-content:center; font-size:1.5rem; color:#475569;">
+            +
+            <span class="thumb-label">Upload</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="selector-panel">
+        <h3>Background</h3>
+        <div class="thumb-row">
+          <div class="thumb active" data-bg="none" style="background: radial-gradient(ellipse at center bottom, #1e293b 0%, #0f172a 70%);">
+            <span class="thumb-label">Dark</span>
+          </div>
+          <div class="thumb" data-bg="bg-underwater.png" style="background-image: url('bg-underwater.png');">
+            <span class="thumb-label">Ocean</span>
+          </div>
+          <div class="thumb" data-bg="bg-forest.png" style="background-image: url('bg-forest.png');">
+            <span class="thumb-label">Forest</span>
+          </div>
+          <div class="thumb" data-bg="bg-space.png" style="background-image: url('bg-space.png');">
+            <span class="thumb-label">Space</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls -->
     <div class="controls">
-      <h2>Controls</h2>
+      <h2>Sprite Sheet Controls</h2>
 
       <div class="drop-zone" id="dropZone">
         <input type="file" id="fileInput" accept="image/png,image/jpeg,image/webp,.json">
-        Drop a sprite sheet PNG here (or click to browse).<br>
-        <small>You can also drop the .json metadata file to auto-configure.</small>
+        Drop a sprite sheet PNG here to preview the animation<br>
+        <small>Or drop the .json metadata file to auto-configure frames and timing.</small>
       </div>
 
       <div class="control-row">
@@ -333,18 +449,20 @@
       </div>
 
       <div class="btn-row">
-        <button class="primary" id="playBtn">Play</button>
+        <button class="primary" id="playBtn">Play Sprite Sheet</button>
         <button id="pauseBtn">Pause</button>
-        <button id="resetBtn">Reset Demo</button>
+        <button id="resetBtn">Reset</button>
       </div>
     </div>
 
-    <div class="code-section" id="codeSection">
+    <!-- Code output -->
+    <div class="code-section">
       <h2>Generated CSS</h2>
       <pre id="codePreview">.sprite-animation {
   width: 200px;
   height: 200px;
-  background: url('your-spritesheet.png') left center;
+  background: url('spritesheet.png') left center;
+  background-size: 4800px 200px;
   animation: sprite-play 2.0s steps(24) infinite;
 }
 
@@ -359,8 +477,9 @@
   </footer>
 
   <script>
+    const stage = document.getElementById('stage');
+    const characterImg = document.getElementById('characterImg');
     const spriteEl = document.getElementById('spriteEl');
-    const demoSprite = document.getElementById('demoSprite');
     const frameCountInput = document.getElementById('frameCount');
     const durationInput = document.getElementById('duration');
     const frameSizeInput = document.getElementById('frameSize');
@@ -372,10 +491,70 @@
     const fileInput = document.getElementById('fileInput');
 
     let spriteLoaded = false;
-    let spriteUrl = null;
-    let sheetWidth = 0;
-    let sheetHeight = 0;
 
+    // ---- Character selection ----
+    const charThumbs = document.querySelectorAll('[data-character]');
+    const charCustom = document.getElementById('charCustom');
+
+    charThumbs.forEach(thumb => {
+      thumb.addEventListener('click', () => {
+        charThumbs.forEach(t => t.classList.remove('active'));
+        charCustom.classList.remove('active');
+        thumb.classList.add('active');
+        characterImg.src = thumb.dataset.character;
+        // Show static character, hide sprite
+        if (spriteLoaded) {
+          spriteLoaded = false;
+          spriteEl.style.display = 'none';
+          spriteEl.classList.remove('playing');
+          characterImg.style.display = '';
+        }
+      });
+    });
+
+    // Custom character upload
+    const charFileInput = document.createElement('input');
+    charFileInput.type = 'file';
+    charFileInput.accept = 'image/png,image/jpeg,image/webp';
+    charFileInput.style.display = 'none';
+    document.body.appendChild(charFileInput);
+
+    charCustom.addEventListener('click', () => charFileInput.click());
+    charFileInput.addEventListener('change', (e) => {
+      if (!e.target.files[0]) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        charThumbs.forEach(t => t.classList.remove('active'));
+        charCustom.classList.add('active');
+        characterImg.src = ev.target.result;
+        if (spriteLoaded) {
+          spriteLoaded = false;
+          spriteEl.style.display = 'none';
+          spriteEl.classList.remove('playing');
+          characterImg.style.display = '';
+        }
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    });
+
+    // ---- Background selection ----
+    const bgThumbs = document.querySelectorAll('[data-bg]');
+    bgThumbs.forEach(thumb => {
+      thumb.addEventListener('click', () => {
+        bgThumbs.forEach(t => t.classList.remove('active'));
+        thumb.classList.add('active');
+        const bg = thumb.dataset.bg;
+        if (bg === 'none') {
+          stage.style.backgroundImage = '';
+          stage.className = 'stage bg-none';
+        } else {
+          stage.className = 'stage';
+          stage.style.backgroundImage = `url('${bg}')`;
+        }
+      });
+    });
+
+    // ---- Sprite sheet controls ----
     function updateAnimation() {
       const frames = parseInt(frameCountInput.value);
       const dur = parseFloat(durationInput.value);
@@ -394,13 +573,11 @@
       }
 
       const totalWidth = frames * size;
-      const fileName = spriteLoaded ? 'your-spritesheet.png' : 'your-spritesheet.png';
-
       codePreview.textContent =
 `.sprite-animation {
   width: ${size}px;
   height: ${size}px;
-  background: url('${fileName}') left center;
+  background: url('spritesheet.png') left center;
   background-size: ${totalWidth}px ${size}px;
   animation: sprite-play ${dur.toFixed(1)}s steps(${frames}) infinite;
 }
@@ -429,7 +606,7 @@
       spriteEl.style.display = 'none';
       spriteEl.classList.remove('playing');
       spriteEl.style.backgroundImage = '';
-      demoSprite.style.display = '';
+      characterImg.style.display = '';
       frameCountInput.value = 24;
       durationInput.value = 2;
       frameSizeInput.value = 200;
@@ -459,21 +636,16 @@
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
-          sheetWidth = img.naturalWidth;
-          sheetHeight = img.naturalHeight;
-          spriteUrl = e.target.result;
           spriteLoaded = true;
-
-          demoSprite.style.display = 'none';
+          characterImg.style.display = 'none';
           spriteEl.style.display = '';
-          spriteEl.style.backgroundImage = `url('${spriteUrl}')`;
+          spriteEl.style.backgroundImage = `url('${e.target.result}')`;
 
-          // Auto-detect frame count from aspect ratio (horizontal layout)
-          const frames = Math.round(sheetWidth / sheetHeight);
+          const frames = Math.round(img.naturalWidth / img.naturalHeight);
           if (frames >= 2 && frames <= 120) {
             frameCountInput.value = frames;
           }
-          frameSizeInput.value = sheetHeight;
+          frameSizeInput.value = Math.min(img.naturalHeight, 300);
 
           updateAnimation();
           spriteEl.classList.add('playing');
