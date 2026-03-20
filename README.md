@@ -82,7 +82,10 @@ cd claude-skill-klingai-animation
 chmod +x install.sh && ./install.sh
 ```
 
-The installer checks prerequisites and copies the skill to `~/.claude/skills/animate-character`.
+The installer will:
+1. Check that ffmpeg and Node.js are installed
+2. Copy the skill to `~/.claude/skills/animate-character`
+3. Ask for your Kling AI API credentials and save them automatically
 
 ### Manual Install
 
@@ -109,18 +112,20 @@ git submodule add https://github.com/TamerinTECH/claude-skill-klingai-animation.
 
 ### Set Up API Credentials
 
+> **If you used the installer above, your credentials are already saved.** The steps below are only needed for manual installs.
+
 Get your keys from the [Kling AI Developer Console](https://app.klingai.com/global/dev), then set them as environment variables:
+
+**Windows** (persistent — survives terminal restarts):
+```powershell
+[Environment]::SetEnvironmentVariable("KLING_ACCESS_KEY", "your-access-key", "User")
+[Environment]::SetEnvironmentVariable("KLING_SECRET_KEY", "your-secret-key", "User")
+```
 
 **Mac / Linux** (add to `~/.bashrc` or `~/.zshrc`):
 ```bash
 export KLING_ACCESS_KEY="your-access-key"
 export KLING_SECRET_KEY="your-secret-key"
-```
-
-**Windows** (add to your PowerShell profile or system environment variables):
-```powershell
-$env:KLING_ACCESS_KEY = "your-access-key"
-$env:KLING_SECRET_KEY = "your-secret-key"
 ```
 
 ## Usage
