@@ -4,6 +4,7 @@
 
 $ErrorActionPreference = "Stop"
 
+$skipCredentials = $false
 $SkillName = "animate-character"
 $SourceDir = Join-Path $PSScriptRoot "skill"
 $TargetDir = Join-Path $env:USERPROFILE ".claude" "skills" $SkillName
@@ -94,10 +95,10 @@ if ($existingAccess -and $existingSecret) {
 if (-not $skipCredentials) {
     Write-Host "  The skill needs Kling AI API credentials to generate animations." -ForegroundColor White
     Write-Host ""
-    Write-Host "  If you don't have them yet:" -ForegroundColor White
-    Write-Host "    1. Go to https://app.klingai.com/global/dev" -ForegroundColor Cyan
-    Write-Host "    2. Sign up / log in" -ForegroundColor Cyan
-    Write-Host "    3. Create an API key (you'll get an Access Key + Secret Key)" -ForegroundColor Cyan
+    Write-Host '  If you do not have them yet:' -ForegroundColor White
+    Write-Host '    1. Go to https://app.klingai.com/global/dev' -ForegroundColor Cyan
+    Write-Host '    2. Sign up / log in' -ForegroundColor Cyan
+    Write-Host '    3. Create an API key — you will get an Access Key + Secret Key' -ForegroundColor Cyan
     Write-Host ""
 
     $setupNow = Read-Host "  Do you want to enter your API keys now? (Y/n)"
