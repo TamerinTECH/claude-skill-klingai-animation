@@ -1,0 +1,20 @@
+{
+  "name": "fox-coding",
+  "spriteSheet": "fox-coding.png",
+  "frameCount": 61,
+  "frameWidth": 200,
+  "frameHeight": 200,
+  "columns": 61,
+  "rows": 1,
+  "fps": 12,
+  "totalDuration": "5.08s",
+  "totalWidth": 12200,
+  "totalHeight": 200,
+  "css": {
+    "className": "sprite-fox-coding",
+    "snippet": ".sprite-fox-coding {\n  width: 200px;\n  height: 200px;\n  background: url('fox-coding.png') left center;\n  background-size: 12200px 200px;\n  animation: sprite-fox-coding-play 5.08s steps(61) infinite;\n}\n\n@keyframes sprite-fox-coding-play {\n  to { background-position: right center; }\n}"
+  },
+  "react": {
+    "snippet": "<div\n  style={{\n    width: 200,\n    height: 200,\n    backgroundImage: `url('/sprites/fox-coding.png')`,\n    backgroundSize: '12200px 200px',\n    animation: 'sprite-fox-coding-play 5.08s steps(61) infinite'\n  }}\n/>"
+  }
+}
