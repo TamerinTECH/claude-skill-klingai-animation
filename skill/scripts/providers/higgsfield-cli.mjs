@@ -32,7 +32,7 @@
  * Update higgsfield-unlimited.json when your subscription changes.
  */
 
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { writeFile, mkdir, readFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -84,6 +84,46 @@ const ASPECT_RATIO = args['aspect-ratio'] || '1:1';
 const OUTPUT = args['output'] || './animation.mp4';
 const EXPLICIT_HF_MODEL = args['hf-model'];
 const WAIT_TIMEOUT = args['wait-timeout'] || '20m';
+
+function runHiggsfieldSync(cliArgs) {
+  // Sync wrapper for short-lived calls (e.g., generate cost). Captures stdout
+  // and returns it; uses the same shell-handling rules as runHiggsfield.
+  const isWindows = process.platform === 'win32';
+  const cmd = isWindows ? 'higgsfield.cmd' : 'higgsfield';
+  const result = spawnSync(cmd, cliArgs, {
+    encoding: 'utf8',
+    shell: false,
+    timeout: 15_000
+  });
+  return { stdout: result.stdout || '', stderr: result.stderr || '', status: result.status };
+}
+
+async function preflightCost(model, prompt, duration, mode, extraParams) {
+  // Best-effort: query `higgsfield generate cost` before submitting.
+  // Returns a credit number if parseable, else null.
+  const args = [
+    'generate', 'cost', model,
+    '--prompt', prompt || 'preflight',
+    '--duration', String(duration),
+    '--json'
+  ];
+  if (model.startsWith('kling') && mode) {
+    args.push('--mode', mode);
+  }
+  if (extraParams) {
+    for (const [k, v] of Object.entries(extraParams)) {
+      args.push(`--${k}`, String(v));
+    }
+  }
+  try {
+    const { stdout, status } = runHiggsfieldSync(args);
+    if (status !== 0) return null;
+    const json = JSON.parse(stdout);
+    return typeof json.credits === 'number' ? json.credits : null;
+  } catch {
+    return null;
+  }
+}
 
 function runHiggsfield(cliArgs) {
   return new Promise((resolvePromise, rejectPromise) => {
@@ -208,7 +248,7 @@ async function main() {
   console.log('=== Higgsfield CLI Image-to-Video ===');
   console.log(`Image: ${IMAGE_PATH}`);
   console.log(`Prompt: ${PROMPT}`);
-  console.log(`Model: ${HF_MODEL}${isUnlimited ? ' [UNLIMITED on your plan]' : ''}`);
+  console.log(`Model: ${HF_MODEL}${isUnlimited ? ' [in your unlimited list]' : ''}`);
   if (DURATION !== String(REQUESTED_DURATION)) {
     console.log(`Duration: ${DURATION}s (snapped from ${REQUESTED_DURATION}s; ${HF_MODEL} accepts ${validDurations.join(', ')})`);
   } else {
@@ -218,6 +258,23 @@ async function main() {
   console.log(`Output: ${OUTPUT}`);
   if (!EXPLICIT_HF_MODEL && unlimitedConfig?.default_video === HF_MODEL) {
     console.log(`(Default from higgsfield-unlimited.json — pass --hf-model=... to override)`);
+  }
+
+  // Preflight cost check — ALWAYS show credit cost before submitting,
+  // regardless of unlimited-list status, since transaction logs prove the
+  // 'Unlimited Access History' beta does not extend to CLI calls.
+  const estimatedCredits = await preflightCost(
+    HF_MODEL, PROMPT, DURATION, MODE, unlimitedEntry?.extra_params
+  );
+  if (estimatedCredits !== null) {
+    console.log(`Estimated cost: ${estimatedCredits} credits (per Higgsfield API)`);
+  } else {
+    console.log(`Estimated cost: unavailable`);
+  }
+  if (isUnlimited) {
+    console.log(`WARNING: This model is in your unlimited list, but CLI calls have been observed to`);
+    console.log(`         charge credits anyway. Higgsfield's 'Unlimited Access' may be UI-only.`);
+    console.log(`         Use --provider=kling if you need actually-uncapped Kling generation.`);
   }
   console.log('');
 

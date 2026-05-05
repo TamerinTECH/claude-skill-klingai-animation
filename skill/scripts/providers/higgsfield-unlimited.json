@@ -1,39 +1,49 @@
 {
-  "_comment": [
-    "Models on the user's Higgsfield 'Unlimited Access History' plan.",
-    "Update this file when your subscription changes — see 'Unlimited Access History (Beta)' on https://higgsfield.ai.",
-    "The Higgsfield UI shows display names; this file maps them to CLI job_set_type IDs.",
-    "default_video is the model used when --hf-model is not passed."
+  "_warning": [
+    "IMPORTANT: Higgsfield's 'Unlimited Access History (Beta)' feature appears to be UI-only.",
+    "Transaction log evidence (May 2026): even models displayed as 'Unlimited' in the web UI",
+    "(Minimax Hailuo 2.3, Kling 2.6, etc.) STILL CHARGE CREDITS when called from the CLI.",
+    "Treat every CLI generation as paid until Higgsfield publishes API parity for the unlimited plan.",
+    "If you actually need uncapped Kling, use --provider=kling (direct Kling API) instead — it bills",
+    "against your Kling account, not Higgsfield credits."
   ],
-  "default_video": "minimax_hailuo",
+  "_comment": [
+    "default_video is what the script uses when --hf-model is omitted.",
+    "Currently set to kling2_6 std-mode (cheapest Kling at ~10 credits/call) since the user asked",
+    "for 'Kling 2.5 Turbo' — that name doesn't exist in the CLI; kling2_6 is the closest match.",
+    "Each video entry's extra_params are auto-appended to the CLI call.",
+    "valid_durations is the model's accepted --duration enum — script snaps to nearest if needed."
+  ],
+  "default_video": "kling2_6",
   "video": [
+    {
+      "display_name": "Kling 2.5 Turbo (UI) → kling2_6 (CLI)",
+      "job_set_type": "kling2_6",
+      "extra_params": { "mode": "std" },
+      "actual_cost_per_call": "~10 credits (std mode); ~20 credits (pro mode)",
+      "fits_sprite_use_case": "yes — best Kling character lock available via CLI",
+      "valid_durations": ["5", "10"],
+      "note": "CLI does NOT expose a 'Turbo' variant of Kling 2.5. kling2_6 is the closest Kling video model."
+    },
     {
       "display_name": "Minimax Hailuo 2.3",
       "job_set_type": "minimax_hailuo",
       "extra_params": { "model": "minimax-2.3" },
-      "expires": "2026-05-29",
+      "actual_cost_per_call": "~6 credits (cheapest video model)",
       "fits_sprite_use_case": "yes — strong character consistency, supports 'static shot' prompts",
       "valid_durations": ["6", "10"]
     },
     {
       "display_name": "Seedance Pro Fast",
       "job_set_type": "seedance1_5",
-      "expires": "2026-05-29",
-      "fits_sprite_use_case": "ok — known for some character drift between frames; cheap fallback",
+      "actual_cost_per_call": "unknown — not yet observed in transaction log",
+      "fits_sprite_use_case": "ok — known for some character drift between frames",
       "valid_durations": ["4", "8", "12"],
       "note": "Mapping uncertain — UI shows 'Pro Fast'; CLI exposes 'Seedance 1.5 Pro' as seedance1_5"
-    },
-    {
-      "display_name": "Kling 2.5 Turbo",
-      "job_set_type": "kling2_6",
-      "expires": "2026-05-29",
-      "fits_sprite_use_case": "yes — Kling family has best character lock; may not match exactly",
-      "valid_durations": ["5", "10"],
-      "note": "Mapping uncertain — UI shows '2.5 Turbo'; CLI has kling2_6 (Kling 2.6 Video) as closest"
     }
   ],
   "image": [
-    { "display_name": "Nano Banana 2", "job_set_type": "nano_banana_flash", "expires": "2026-05-29" },
-    { "display_name": "Nano Banana Pro", "job_set_type": "nano_banana_2", "expires": "2026-05-06" }
+    { "display_name": "Nano Banana 2", "job_set_type": "nano_banana_flash" },
+    { "display_name": "Nano Banana Pro", "job_set_type": "nano_banana_2" }
   ]
 }

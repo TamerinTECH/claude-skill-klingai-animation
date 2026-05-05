@@ -235,26 +235,29 @@ node .claude/skills/animate-character/scripts/video-to-spritesheet.mjs \
 | `--model` | `kling-v3` | Kling model version (when `--provider=kling`) |
 | `--hf-model` | `kling3_0` | Higgsfield job_set_type (when `--provider=higgsfield`) |
 
-### Higgsfield Model Selection — Unlimited-Plan Aware
+### Higgsfield Model Selection
 
-The Higgsfield provider defaults to whatever's in [`skill/scripts/providers/higgsfield-unlimited.json`](skill/scripts/providers/higgsfield-unlimited.json) — the list of models on your Higgsfield "Unlimited Access" subscription. When the chosen model is in the file, generations don't bill against credits.
+The Higgsfield provider defaults to whatever's in [`skill/scripts/providers/higgsfield-unlimited.json`](skill/scripts/providers/higgsfield-unlimited.json) — currently `kling2_6` in `std` mode (the closest CLI match to "Kling 2.5 Turbo" and the cheapest Kling option at ~10 credits/call).
 
-When your Higgsfield subscription changes, edit `higgsfield-unlimited.json`:
-1. Open https://higgsfield.ai → "Unlimited Access History (Beta)"
-2. Map each display name to its CLI `job_set_type` with `higgsfield model list --json`
-3. Update the `video` array. Set `default_video` to the best one for your use case.
+**⚠️ Important — "Unlimited Access" is currently UI-only:** Despite Higgsfield's "Unlimited Access History (Beta)" page listing models like Minimax Hailuo 2.3 and Kling 2.5 Turbo as unlimited on the Ultra plan, **transaction logs show that CLI calls bill credits anyway** (Hailuo 2.3 charges 6 credits per call via CLI; Kling 2.6 charges 10-20). Treat every CLI generation as paid until Higgsfield publishes API parity for the unlimited plan.
+
+If you need actually-uncapped Kling generation, use `--provider=kling` (direct Kling API). It bills against your Kling AI account, not Higgsfield credits.
+
+**Cost preflight:** Before each generation the script runs `higgsfield generate cost` and prints the estimated credit charge so you see the cost before committing.
 
 **Recommendations for sprite-sheet character animation** (character must stay centered, no camera movement, consistent across frames):
 
-| Tier | Model (`--hf-model=`) | Why |
-|---|---|---|
-| **Best (if unlimited)** | `minimax_hailuo` | Strong cross-frame identity tracking, supports explicit `static shot, locked camera` prompts. Currently the repo default. |
-| **Best paid** | `kling3_0` | "Bind Subject" feature locks the character; fast (5-10s). Fall-through default if the unlimited config is missing. |
-| **Cheap fallback** | `kling2_6` | Tuned for "idle ambient motion (breathing, hair drift)" — exactly our use case |
+| Tier | Model (`--hf-model=`) | Cost (observed) | Why |
+|---|---|---|---|
+| **Default** | `kling2_6` (std) | ~10 credits | Kling family = best character lock available via CLI |
+| **Cheapest** | `minimax_hailuo` | ~6 credits | Strong character consistency, supports `static shot, locked camera` prompts |
+| **Best quality** | `kling3_0` | ~? credits | "Bind Subject" feature; preliminary cost shown as 1000 by API but actual billing TBD |
 
 **Avoid** for sprite sheets: `veo3*`, `cinematic_studio_*`, `soul_cast`, `wan2_*` — all bias toward cinematic camera moves that fight our "centered, static" requirement.
 
-The script also auto-snaps `--duration` to the nearest valid value for the chosen model (Kling: 5/10s, Minimax: 6/10s, Seedance: 4/8/12s).
+The script auto-snaps `--duration` to the nearest valid value for the chosen model (Kling: 5/10s, Minimax: 6/10s, Seedance: 4/8/12s).
+
+**To update when your Higgsfield subscription changes:** edit `higgsfield-unlimited.json` — map each UI display name to its CLI `job_set_type` (run `higgsfield model list --json`).
 
 ### Sprite Sheet Conversion
 
