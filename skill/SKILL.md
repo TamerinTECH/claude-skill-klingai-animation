@@ -1,24 +1,37 @@
 ---
 name: animate-character
-description: Generate character animations from a source image using Kling AI video generation, then convert the resulting MP4 video into an optimized sprite sheet for web use. Use when the user wants to create character animations, sprite sheets, or animate illustrations.
+description: Generate character animations from a source image using Kling AI video generation (direct API or via the Higgsfield CLI), then convert the resulting MP4 video into an optimized sprite sheet for web use. Use when the user wants to create character animations, sprite sheets, or animate illustrations.
 disable-model-invocation: true
 argument-hint: <source-image-path> <animation-description>
 allowed-tools: Read, Write, Bash, Glob, WebFetch
 ---
 
-# Animate Character — Kling AI to Sprite Sheet Pipeline
+# Animate Character — Image to Sprite Sheet Pipeline
 
-This skill takes a source character image and an animation description, generates an animated video using the Kling AI API, then converts the video into an optimized sprite sheet ready for web use.
+This skill takes a source character image and an animation description, generates an animated video, then converts the video into an optimized sprite sheet ready for web use.
+
+Two video-generation backends are supported:
+- **Kling direct API** — JWT auth, requires `KLING_ACCESS_KEY` + `KLING_SECRET_KEY` env vars.
+- **Higgsfield CLI** — handles auth internally (one-time `higgsfield auth login`). Routes through Kling 3.0 by default but exposes 15+ other models (Seedance, Veo, Wan, Hailuo, …) via a single flag.
+
+The dispatcher (`scripts/generate.mjs`) auto-detects which one to use, or the user can force a choice with `--provider=kling` or `--provider=higgsfield`.
 
 ## Prerequisites
 
-The user must provide their Kling AI API credentials. Check for environment variables:
-- `KLING_ACCESS_KEY` — Kling API Access Key ID
-- `KLING_SECRET_KEY` — Kling API Secret Key
+At least one of the two backends must be available:
 
-If not set, ask the user to provide them. They can get credentials from https://app.klingai.com/global/dev
+**Option A — Kling direct API:**
+- `KLING_ACCESS_KEY` and `KLING_SECRET_KEY` env vars set.
+- Get credentials from https://app.klingai.com/global/dev
 
-ffmpeg must be installed (verify with `ffmpeg -version`).
+**Option B — Higgsfield CLI:**
+- `higgsfield` CLI installed and on PATH (`npm install -g @higgsfield-ai/cli` or via the [skills repo](https://github.com/higgsfield-ai/skills)).
+- One-time `higgsfield auth login`.
+- Verify with `higgsfield model list --json`.
+
+ffmpeg must also be installed (verify with `ffmpeg -version`).
+
+If the user has neither configured, ask which one they'd like to use and walk them through setup. If they have both, default to Kling direct unless they specifically asked for Higgsfield.
 
 ## Workflow
 
@@ -66,28 +79,33 @@ Example prompts:
 
 Show the prompt to the user for approval before proceeding.
 
-### Step 3: Call the Kling AI API
+### Step 3: Generate the Video
 
-Use the Node.js script at `${CLAUDE_SKILL_DIR}/scripts/kling-generate.mjs` to generate the video:
+Use the dispatcher at `${CLAUDE_SKILL_DIR}/scripts/generate.mjs`. It picks the right backend and forwards args.
 
 ```bash
-node "${CLAUDE_SKILL_DIR}/scripts/kling-generate.mjs" \
-  --access-key="$KLING_ACCESS_KEY" \
-  --secret-key="$KLING_SECRET_KEY" \
+node "${CLAUDE_SKILL_DIR}/scripts/generate.mjs" \
+  --provider=<kling|higgsfield> \
   --image="<SOURCE_IMAGE_PATH>" \
   --prompt="<the-approved-prompt>" \
   --duration=5 \
   --output="<output-directory>/animation.mp4"
 ```
 
-The script will:
-1. Generate a JWT token from the access/secret keys
-2. Read the image and encode it as raw base64 (no data URI prefix — Kling API requirement)
-3. Submit the image-to-video task to Kling AI
-4. Poll for completion (every 10 seconds, up to 10 minutes)
-5. Download the resulting MP4 video
+If `--provider` is omitted, the dispatcher auto-detects:
+1. If `KLING_ACCESS_KEY` + `KLING_SECRET_KEY` are set → Kling direct API.
+2. Else if `higgsfield` CLI is on PATH and authenticated → Higgsfield CLI.
+3. Else: prints setup hints and exits.
 
-If the user hasn't set environment variables, pass the keys directly via `--access-key` and `--secret-key` flags (ask the user for them).
+**Provider-specific options:**
+
+- **Kling direct (`--provider=kling`):** Same flags as before. `--access-key` and `--secret-key` may be passed explicitly if env vars are not set. Uses Kling's `kling-v3` model in `std` mode by default.
+- **Higgsfield (`--provider=higgsfield`):** Adds `--hf-model=<job_set_type>` (default: `kling3_0`). Other useful values:
+  - `kling2_6` — cheaper, good for subtle idle motion
+  - `seedance_2_0` — high quality but slow
+  - `minimax_hailuo` — strong character consistency, supports "static shot" prompts
+
+The script downloads an MP4 to `--output`.
 
 ### Step 4: Convert MP4 to Sprite Sheet
 
@@ -140,19 +158,26 @@ The user can customize:
 - `--width` — Frame width in pixels (default: 200)
 - `--height` — Frame height in pixels (default: auto, maintains aspect ratio)
 - `--duration` — Video duration in seconds (default: 5, options: 5 or 10)
-- `--model` — Kling model version (default: kling-v3)
-- `--mode` — Quality mode: "std" (fast) or "pro" (higher quality) (default: std)
+- `--provider` — Video backend: "kling" (direct API) or "higgsfield" (CLI). Default: auto-detect.
+- `--model` — Kling model version when `--provider=kling` (default: kling-v3)
+- `--hf-model` — Higgsfield model job_set_type when `--provider=higgsfield` (default: kling3_0)
+- `--mode` — Quality mode: "std" (fast) or "pro" (higher quality) (default: std). Applies to Kling models only.
 - `--remove-bg` — Background removal method: "green" (chroma-key), "auto" (AI-based), or "none" (default: green)
 - `--format` — Output format: "horizontal" (single row), "grid" (rows x cols), or "vertical" (single column) (default: horizontal)
 
 ## Error Handling
 
-- If Kling API returns an error, show the error message and suggest the user check their API credits
+- If the API returns an error, show the message and suggest the user check their credits/billing
 - If ffmpeg is not installed, provide installation instructions
-- If the video generation times out, suggest trying with `--mode=std` for faster generation
-- If background removal produces poor results, suggest the user try `--remove-bg=auto` or `--remove-bg=none` and manually remove the background
+- If the video generation times out, suggest trying `--mode=std` for faster generation, or switching to `--hf-model=kling2_6` (faster than kling3_0)
+- If background removal produces poor results, suggest `--remove-bg=auto` or `--remove-bg=none`
+- If `--provider=higgsfield` fails with "higgsfield CLI not found", point the user to `npm install -g @higgsfield-ai/cli` then `higgsfield auth login`
+- If neither provider is configured, the dispatcher prints setup hints — surface those verbatim
 
 ## Additional Resources
 
-- For complete script source code, see [scripts/kling-generate.mjs](scripts/kling-generate.mjs)
-- For the sprite sheet converter, see [scripts/video-to-spritesheet.mjs](scripts/video-to-spritesheet.mjs)
+- Dispatcher: [scripts/generate.mjs](scripts/generate.mjs)
+- Kling direct provider: [scripts/providers/kling-direct.mjs](scripts/providers/kling-direct.mjs)
+- Higgsfield CLI provider: [scripts/providers/higgsfield-cli.mjs](scripts/providers/higgsfield-cli.mjs)
+- Sprite sheet converter: [scripts/video-to-spritesheet.mjs](scripts/video-to-spritesheet.mjs)
+- Back-compat shim: [scripts/kling-generate.mjs](scripts/kling-generate.mjs) — forwards to dispatcher with `--provider=kling`

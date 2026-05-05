@@ -12,7 +12,8 @@ TARGET_DIR="$HOME/.claude/skills/$SKILL_NAME"
 
 echo ""
 echo "=== Animate Character Skill Installer ==="
-echo "    Kling AI animation for Claude Code"
+echo "    Image-to-sprite-sheet animation for Claude Code"
+echo "    Backends: Kling direct API or Higgsfield CLI"
 echo ""
 
 # ---- Step 1: Check prerequisites ----
@@ -67,9 +68,9 @@ fi
 echo "  [OK] Skill files installed"
 echo ""
 
-# ---- Step 3: API credentials ----
+# ---- Step 3: Configure a video-generation backend ----
 
-echo "Step 3: Kling AI API credentials"
+echo "Step 3: Configure a video-generation backend"
 echo ""
 
 # Detect shell profile
@@ -82,85 +83,104 @@ elif [ -f "$HOME/.bash_profile" ]; then
     SHELL_PROFILE="$HOME/.bash_profile"
 fi
 
-# Check if already set
-SKIP_CREDENTIALS=false
+# Detect what's already configured
+HAS_KLING=false
+HAS_HIGGSFIELD=false
 
 if [ -n "$KLING_ACCESS_KEY" ] && [ -n "$KLING_SECRET_KEY" ]; then
-    echo "  [OK] Kling AI credentials already configured"
+    HAS_KLING=true
+    echo "  [OK] Kling direct API credentials already set"
     echo "       Access Key: ${KLING_ACCESS_KEY:0:8}..."
-    echo ""
-    read -rp "  Do you want to update them? (y/N) " reconfigure
-    if [ "$reconfigure" != "y" ] && [ "$reconfigure" != "Y" ]; then
-        echo "  [OK] Keeping existing credentials"
-        SKIP_CREDENTIALS=true
+fi
+
+if command -v higgsfield &>/dev/null; then
+    if higgsfield model list --json &>/dev/null; then
+        HAS_HIGGSFIELD=true
+        echo "  [OK] Higgsfield CLI installed and authenticated"
+    else
+        echo "  [..] Higgsfield CLI installed but not authenticated."
+        echo "       Run: higgsfield auth login"
     fi
 fi
 
-if [ "$SKIP_CREDENTIALS" = false ]; then
-    echo "  The skill needs Kling AI API credentials to generate animations."
-    echo ""
-    echo "  If you don't have them yet:"
-    echo "    1. Go to https://app.klingai.com/global/dev"
-    echo "    2. Sign up / log in"
-    echo "    3. Create an API key (you'll get an Access Key + Secret Key)"
-    echo ""
+echo ""
 
-    read -rp "  Do you want to enter your API keys now? (Y/n) " setup_now
-
-    if [ "$setup_now" = "n" ] || [ "$setup_now" = "N" ]; then
-        echo ""
-        echo "  [..] Skipping credentials setup. You can set them later by adding"
-        echo "       these lines to your shell profile ($SHELL_PROFILE):"
-        echo ""
-        echo '       export KLING_ACCESS_KEY="your-access-key"'
-        echo '       export KLING_SECRET_KEY="your-secret-key"'
-        echo ""
-        echo "       Then restart your terminal."
+if [ "$HAS_KLING" = true ] || [ "$HAS_HIGGSFIELD" = true ]; then
+    echo "  [OK] At least one backend is configured — you're ready to go."
+    echo ""
+    read -rp "  Configure another backend now? (y/N) " setup_more
+    if [ "$setup_more" != "y" ] && [ "$setup_more" != "Y" ]; then
+        SETUP_CHOICE="skip"
     else
         echo ""
-        read -rp "  Enter your Kling AI Access Key: " access_key
-        read -rp "  Enter your Kling AI Secret Key: " secret_key
+        echo "  Which backend would you like to add?"
+        echo "    1) Kling direct API (api keys)"
+        echo "    2) Higgsfield CLI (login)"
+        echo ""
+        read -rp "  Enter 1 or 2 (or press enter to skip): " SETUP_CHOICE
+    fi
+else
+    echo "  No backend configured yet. Pick one:"
+    echo ""
+    echo "    1) Kling direct API"
+    echo "       - Get Access Key + Secret Key from https://app.klingai.com/global/dev"
+    echo "       - Stored as env vars in your shell profile"
+    echo ""
+    echo "    2) Higgsfield CLI (recommended — also gives access to 15+ other models)"
+    echo "       - Install: npm install -g @higgsfield-ai/cli"
+    echo "       - Login:   higgsfield auth login"
+    echo ""
+    read -rp "  Enter 1 or 2 (or press enter to skip): " SETUP_CHOICE
+fi
 
-        if [ -z "$access_key" ] || [ -z "$secret_key" ]; then
-            echo ""
-            echo "  [!!] Both keys are required. Skipping credential setup."
-            echo "       You can run this installer again later to set them."
-        else
-            if [ -n "$SHELL_PROFILE" ]; then
-                # Remove old entries if present
-                if grep -q "KLING_ACCESS_KEY" "$SHELL_PROFILE" 2>/dev/null; then
-                    sed -i.bak '/KLING_ACCESS_KEY/d' "$SHELL_PROFILE"
-                    sed -i.bak '/KLING_SECRET_KEY/d' "$SHELL_PROFILE"
-                fi
+if [ "$SETUP_CHOICE" = "1" ]; then
+    echo ""
+    read -rp "  Enter your Kling AI Access Key: " access_key
+    read -rp "  Enter your Kling AI Secret Key: " secret_key
 
-                # Append to shell profile
-                echo "" >> "$SHELL_PROFILE"
-                echo "# Kling AI credentials (added by animate-character skill installer)" >> "$SHELL_PROFILE"
-                echo "export KLING_ACCESS_KEY=\"$access_key\"" >> "$SHELL_PROFILE"
-                echo "export KLING_SECRET_KEY=\"$secret_key\"" >> "$SHELL_PROFILE"
-
-                # Also export in current session
-                export KLING_ACCESS_KEY="$access_key"
-                export KLING_SECRET_KEY="$secret_key"
-
-                echo ""
-                echo "  [OK] Credentials saved to $SHELL_PROFILE"
-                echo "       They will persist across terminal sessions."
-            else
-                # No profile found, export for current session only
-                export KLING_ACCESS_KEY="$access_key"
-                export KLING_SECRET_KEY="$secret_key"
-
-                echo ""
-                echo "  [OK] Credentials set for this session."
-                echo "  [!!] Could not find a shell profile to save them permanently."
-                echo "       Add these lines manually to your shell profile:"
-                echo ""
-                echo "       export KLING_ACCESS_KEY=\"$access_key\""
-                echo "       export KLING_SECRET_KEY=\"$secret_key\""
+    if [ -z "$access_key" ] || [ -z "$secret_key" ]; then
+        echo ""
+        echo "  [!!] Both keys are required. Skipping credential setup."
+    else
+        if [ -n "$SHELL_PROFILE" ]; then
+            if grep -q "KLING_ACCESS_KEY" "$SHELL_PROFILE" 2>/dev/null; then
+                sed -i.bak '/KLING_ACCESS_KEY/d' "$SHELL_PROFILE"
+                sed -i.bak '/KLING_SECRET_KEY/d' "$SHELL_PROFILE"
             fi
+            {
+                echo ""
+                echo "# Kling AI credentials (added by animate-character skill installer)"
+                echo "export KLING_ACCESS_KEY=\"$access_key\""
+                echo "export KLING_SECRET_KEY=\"$secret_key\""
+            } >> "$SHELL_PROFILE"
+            export KLING_ACCESS_KEY="$access_key"
+            export KLING_SECRET_KEY="$secret_key"
+            echo ""
+            echo "  [OK] Credentials saved to $SHELL_PROFILE"
+        else
+            export KLING_ACCESS_KEY="$access_key"
+            export KLING_SECRET_KEY="$secret_key"
+            echo ""
+            echo "  [OK] Credentials set for this session only."
+            echo "  [!!] No shell profile found. Add these lines manually:"
+            echo "       export KLING_ACCESS_KEY=\"$access_key\""
+            echo "       export KLING_SECRET_KEY=\"$secret_key\""
         fi
     fi
+elif [ "$SETUP_CHOICE" = "2" ]; then
+    echo ""
+    echo "  Higgsfield CLI setup is interactive — run these commands yourself:"
+    echo ""
+    echo "    npm install -g @higgsfield-ai/cli"
+    echo "    higgsfield auth login"
+    echo ""
+    echo "  Then verify with:"
+    echo ""
+    echo "    higgsfield model list --json"
+    echo ""
+else
+    echo ""
+    echo "  [..] Skipping backend setup. Configure later before using the skill."
 fi
 
 # ---- Done ----
