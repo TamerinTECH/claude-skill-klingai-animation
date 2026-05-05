@@ -235,17 +235,26 @@ node .claude/skills/animate-character/scripts/video-to-spritesheet.mjs \
 | `--model` | `kling-v3` | Kling model version (when `--provider=kling`) |
 | `--hf-model` | `kling3_0` | Higgsfield job_set_type (when `--provider=higgsfield`) |
 
-### Higgsfield Model Recommendations
+### Higgsfield Model Selection — Unlimited-Plan Aware
 
-For sprite-sheet character animation specifically (character must stay centered, no camera movement, consistent across frames), we recommend:
+The Higgsfield provider defaults to whatever's in [`skill/scripts/providers/higgsfield-unlimited.json`](skill/scripts/providers/higgsfield-unlimited.json) — the list of models on your Higgsfield "Unlimited Access" subscription. When the chosen model is in the file, generations don't bill against credits.
+
+When your Higgsfield subscription changes, edit `higgsfield-unlimited.json`:
+1. Open https://higgsfield.ai → "Unlimited Access History (Beta)"
+2. Map each display name to its CLI `job_set_type` with `higgsfield model list --json`
+3. Update the `video` array. Set `default_video` to the best one for your use case.
+
+**Recommendations for sprite-sheet character animation** (character must stay centered, no camera movement, consistent across frames):
 
 | Tier | Model (`--hf-model=`) | Why |
 |---|---|---|
-| **Default** | `kling3_0` | Best character lock ("Bind Subject" feature), low credit cost (~6 credits/video), fast |
-| **Cheap fallback** | `kling2_6` | Even cheaper, explicitly tuned for "idle ambient motion (breathing, hair drift)" — exactly our use case |
-| **Splurge** | `minimax_hailuo` | Strong cross-frame identity tracking, supports explicit `static shot, locked camera` prompt tokens |
+| **Best (if unlimited)** | `minimax_hailuo` | Strong cross-frame identity tracking, supports explicit `static shot, locked camera` prompts. Currently the repo default. |
+| **Best paid** | `kling3_0` | "Bind Subject" feature locks the character; fast (5-10s). Fall-through default if the unlimited config is missing. |
+| **Cheap fallback** | `kling2_6` | Tuned for "idle ambient motion (breathing, hair drift)" — exactly our use case |
 
 **Avoid** for sprite sheets: `veo3*`, `cinematic_studio_*`, `soul_cast`, `wan2_*` — all bias toward cinematic camera moves that fight our "centered, static" requirement.
+
+The script also auto-snaps `--duration` to the nearest valid value for the chosen model (Kling: 5/10s, Minimax: 6/10s, Seedance: 4/8/12s).
 
 ### Sprite Sheet Conversion
 

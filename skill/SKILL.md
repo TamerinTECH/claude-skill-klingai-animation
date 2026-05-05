@@ -100,10 +100,13 @@ If `--provider` is omitted, the dispatcher auto-detects:
 **Provider-specific options:**
 
 - **Kling direct (`--provider=kling`):** Same flags as before. `--access-key` and `--secret-key` may be passed explicitly if env vars are not set. Uses Kling's `kling-v3` model in `std` mode by default.
-- **Higgsfield (`--provider=higgsfield`):** Adds `--hf-model=<job_set_type>` (default: `kling3_0`). Other useful values:
-  - `kling2_6` — cheaper, good for subtle idle motion
+- **Higgsfield (`--provider=higgsfield`):** Adds `--hf-model=<job_set_type>`. The default is read from [`scripts/providers/higgsfield-unlimited.json`](scripts/providers/higgsfield-unlimited.json) — the list of models the user has unlimited-plan access to. If they have unlimited access, runs are free; otherwise generations bill against credits. Common values:
+  - `minimax_hailuo` — strong character consistency, supports "static shot" prompts (current default — unlimited on user's plan)
+  - `kling3_0` — best character lock; metered
+  - `kling2_6` — cheaper Kling, good for subtle idle motion
   - `seedance_2_0` — high quality but slow
-  - `minimax_hailuo` — strong character consistency, supports "static shot" prompts
+
+  Update `higgsfield-unlimited.json` when the subscription changes (see "Unlimited Access History" on https://higgsfield.ai). The script also auto-snaps `--duration` to the nearest valid value for the chosen model (e.g., 5 → 6 for minimax_hailuo).
 
 The script downloads an MP4 to `--output`.
 

@@ -17,15 +17,28 @@
  *     --output=./output/animation.mp4
  *
  * Higgsfield-specific options:
- *   --hf-model=<job_set_type>   default: kling3_0
- *                               other options: seedance_2_0, veo3_1, kling2_6,
+ *   --hf-model=<job_set_type>   default: read from higgsfield-unlimited.json
+ *                               (default_video field). Falls back to kling3_0
+ *                               if the config file is missing.
+ *
+ *                               Other options: seedance_2_0, veo3_1, kling2_6,
  *                               wan2_7, minimax_hailuo, etc.
  *                               Run `higgsfield model list --json` to see all.
+ *
+ * The script reads ./higgsfield-unlimited.json (next to this file) for the
+ * user's unlimited-plan model list. When the chosen model is in that list,
+ * `extra_params` are auto-appended (e.g. minimax_hailuo gets --model=minimax-2.3)
+ * and --duration is snapped to the nearest model-valid value if needed.
+ * Update higgsfield-unlimited.json when your subscription changes.
  */
 
 import { spawn } from 'node:child_process';
-import { writeFile, mkdir } from 'node:fs/promises';
+import { writeFile, mkdir, readFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const UNLIMITED_CONFIG_PATH = resolve(__dirname, 'higgsfield-unlimited.json');
 
 function parseArgs(argv) {
   const args = {};
@@ -40,22 +53,48 @@ function parseArgs(argv) {
   return args;
 }
 
+async function loadUnlimitedConfig() {
+  try {
+    const text = await readFile(UNLIMITED_CONFIG_PATH, 'utf8');
+    return JSON.parse(text);
+  } catch (err) {
+    if (err.code === 'ENOENT') return null;
+    console.error(`Warning: failed to read ${UNLIMITED_CONFIG_PATH}: ${err.message}`);
+    return null;
+  }
+}
+
+function nearestDuration(requested, validValues) {
+  if (!validValues || !validValues.length) return String(requested);
+  const reqStr = String(requested);
+  if (validValues.includes(reqStr)) return reqStr;
+  const req = Number(requested);
+  return validValues.reduce((best, cur) =>
+    Math.abs(Number(cur) - req) < Math.abs(Number(best) - req) ? cur : best
+  );
+}
+
 const args = parseArgs(process.argv);
 
 const IMAGE_PATH = args['image'];
 const PROMPT = args['prompt'] || '';
-const DURATION = args['duration'] || '5';
+const REQUESTED_DURATION = args['duration'] || '5';
 const MODE = args['mode'] || 'std';
 const ASPECT_RATIO = args['aspect-ratio'] || '1:1';
 const OUTPUT = args['output'] || './animation.mp4';
-const HF_MODEL = args['hf-model'] || 'kling3_0';
+const EXPLICIT_HF_MODEL = args['hf-model'];
 const WAIT_TIMEOUT = args['wait-timeout'] || '20m';
 
 function runHiggsfield(cliArgs) {
   return new Promise((resolvePromise, rejectPromise) => {
-    const child = spawn('higgsfield', cliArgs, {
+    // Use the .cmd shim on Windows with shell:false so spawn doesn't re-parse
+    // the prompt args through cmd.exe (which would split on every space and
+    // produce "Too many positional args" from the higgsfield CLI).
+    const isWindows = process.platform === 'win32';
+    const cmd = isWindows ? 'higgsfield.cmd' : 'higgsfield';
+    const child = spawn(cmd, cliArgs, {
       stdio: ['ignore', 'pipe', 'pipe'],
-      shell: process.platform === 'win32'
+      shell: false
     });
 
     let stdout = '';
@@ -149,18 +188,44 @@ async function main() {
     process.exit(1);
   }
 
+  // Resolve which model to use:
+  //   1. --hf-model=... explicit override (no unlimited check)
+  //   2. else default_video from higgsfield-unlimited.json
+  //   3. else hardcoded fallback (kling3_0)
+  const unlimitedConfig = await loadUnlimitedConfig();
+  const HF_MODEL = EXPLICIT_HF_MODEL
+    || unlimitedConfig?.default_video
+    || 'kling3_0';
+
+  // Look up model entry in unlimited list (for extra_params + valid_durations).
+  const unlimitedEntry = unlimitedConfig?.video?.find(m => m.job_set_type === HF_MODEL);
+  const isUnlimited = Boolean(unlimitedEntry);
+  const validDurations = unlimitedEntry?.valid_durations;
+  const DURATION = validDurations
+    ? nearestDuration(REQUESTED_DURATION, validDurations)
+    : String(REQUESTED_DURATION);
+
   console.log('=== Higgsfield CLI Image-to-Video ===');
   console.log(`Image: ${IMAGE_PATH}`);
   console.log(`Prompt: ${PROMPT}`);
-  console.log(`Model: ${HF_MODEL} | Duration: ${DURATION}s | Mode: ${MODE} | Aspect: ${ASPECT_RATIO}`);
+  console.log(`Model: ${HF_MODEL}${isUnlimited ? ' [UNLIMITED on your plan]' : ''}`);
+  if (DURATION !== String(REQUESTED_DURATION)) {
+    console.log(`Duration: ${DURATION}s (snapped from ${REQUESTED_DURATION}s; ${HF_MODEL} accepts ${validDurations.join(', ')})`);
+  } else {
+    console.log(`Duration: ${DURATION}s`);
+  }
+  console.log(`Mode: ${MODE} | Aspect: ${ASPECT_RATIO}`);
   console.log(`Output: ${OUTPUT}`);
+  if (!EXPLICIT_HF_MODEL && unlimitedConfig?.default_video === HF_MODEL) {
+    console.log(`(Default from higgsfield-unlimited.json — pass --hf-model=... to override)`);
+  }
   console.log('');
 
   const cliArgs = [
     'generate', 'create', HF_MODEL,
     '--prompt', PROMPT,
     '--start-image', resolve(IMAGE_PATH),
-    '--duration', String(DURATION),
+    '--duration', DURATION,
     '--aspect_ratio', ASPECT_RATIO,
     '--wait',
     '--wait-timeout', WAIT_TIMEOUT,
@@ -170,6 +235,14 @@ async function main() {
   // Mode flag is Kling-specific; only pass it for Kling models.
   if (HF_MODEL.startsWith('kling')) {
     cliArgs.push('--mode', MODE);
+  }
+
+  // Forward any extra_params from the unlimited config (e.g., minimax_hailuo
+  // wants --model=minimax-2.3 to lock to the unlimited tier).
+  if (unlimitedEntry?.extra_params) {
+    for (const [key, value] of Object.entries(unlimitedEntry.extra_params)) {
+      cliArgs.push(`--${key}`, String(value));
+    }
   }
 
   console.log(`Running: higgsfield ${cliArgs.join(' ')}\n`);
@@ -214,6 +287,7 @@ async function main() {
     success: true,
     provider: 'higgsfield',
     model: HF_MODEL,
+    unlimited: isUnlimited,
     videoUrl,
     outputPath,
     duration: DURATION,

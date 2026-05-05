@@ -1,0 +1,39 @@
+{
+  "_comment": [
+    "Models on the user's Higgsfield 'Unlimited Access History' plan.",
+    "Update this file when your subscription changes — see 'Unlimited Access History (Beta)' on https://higgsfield.ai.",
+    "The Higgsfield UI shows display names; this file maps them to CLI job_set_type IDs.",
+    "default_video is the model used when --hf-model is not passed."
+  ],
+  "default_video": "minimax_hailuo",
+  "video": [
+    {
+      "display_name": "Minimax Hailuo 2.3",
+      "job_set_type": "minimax_hailuo",
+      "extra_params": { "model": "minimax-2.3" },
+      "expires": "2026-05-29",
+      "fits_sprite_use_case": "yes — strong character consistency, supports 'static shot' prompts",
+      "valid_durations": ["6", "10"]
+    },
+    {
+      "display_name": "Seedance Pro Fast",
+      "job_set_type": "seedance1_5",
+      "expires": "2026-05-29",
+      "fits_sprite_use_case": "ok — known for some character drift between frames; cheap fallback",
+      "valid_durations": ["4", "8", "12"],
+      "note": "Mapping uncertain — UI shows 'Pro Fast'; CLI exposes 'Seedance 1.5 Pro' as seedance1_5"
+    },
+    {
+      "display_name": "Kling 2.5 Turbo",
+      "job_set_type": "kling2_6",
+      "expires": "2026-05-29",
+      "fits_sprite_use_case": "yes — Kling family has best character lock; may not match exactly",
+      "valid_durations": ["5", "10"],
+      "note": "Mapping uncertain — UI shows '2.5 Turbo'; CLI has kling2_6 (Kling 2.6 Video) as closest"
+    }
+  ],
+  "image": [
+    { "display_name": "Nano Banana 2", "job_set_type": "nano_banana_flash", "expires": "2026-05-29" },
+    { "display_name": "Nano Banana Pro", "job_set_type": "nano_banana_2", "expires": "2026-05-06" }
+  ]
+}
